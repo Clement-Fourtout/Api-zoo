@@ -1,10 +1,17 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const PORT = process.env.PORT || 3000;
 
 // Middleware pour parser le JSON
 app.use(express.json());
 
+const corsOptions = {
+  origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com/',
+  optionsSuccessStatus: 200 // Certains navigateurs peuvent exiger une option de statut de succès explicite
+};
+
+app.use(cors(corsOptions));
 // Données de démonstration - liste de tâches
 let tasks = [
   { id: 1, title: 'Etat de santé' },
