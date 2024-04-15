@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require ('cors')
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +18,10 @@ let tasks = [
 app.get('/tasks', (req, res) => {
   res.json(tasks);
 });
-
+// middleware cors
+app.use(cors({
+  origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com/' // Autorise uniquement les requêtes depuis cette origine
+}));
 // Récupérer une tâche par son ID
 app.get('/tasks/:id', (req, res) => {
   const taskId = parseInt(req.params.id);
