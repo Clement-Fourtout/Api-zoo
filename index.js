@@ -19,9 +19,7 @@ app.get('/tasks', (req, res) => {
   res.json(tasks);
 });
 // Middleware cors
-app.use(cors({
-  origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com' // Autorise uniquement les requêtes depuis cette origine
-}));
+app.use(cors());
 // Récupérer une tâche par son ID
 app.get('/tasks/:id', (req, res) => {
   const taskId = parseInt(req.params.id);
