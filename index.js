@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require ('cors')
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -18,8 +17,7 @@ let tasks = [
 app.get('/tasks', (req, res) => {
   res.json(tasks);
 });
-// Middleware cors
-app.use(cors());
+
 // Récupérer une tâche par son ID
 app.get('/tasks/:id', (req, res) => {
   const taskId = parseInt(req.params.id);
