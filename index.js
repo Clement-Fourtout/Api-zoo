@@ -18,7 +18,7 @@ let tasks = [
 app.get('/tasks', (req, res) => {
   res.json(tasks);
 });
-// middleware cors
+// Middleware cors
 app.use(cors({
   origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com/' // Autorise uniquement les requêtes depuis cette origine
 }));
