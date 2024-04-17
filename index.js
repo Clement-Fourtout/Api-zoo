@@ -16,8 +16,8 @@ app.use(cors(corsOptions));
 let tasks = [
   { id: 1, title: 'Etat de santé :' },
   { id: 2, title: 'Nourriture :' },
-  { id: 2, title: 'Grammage :' },
-  { id: 2, title: 'Date de passage :' },
+  { id: 3, title: 'Grammage :' },
+  { id: 4, title: 'Date de passage :' },
 ];
 
 // Récupérer toutes les tâches
