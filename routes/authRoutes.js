@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
         }
 
         // Vérifiez si le mot de passe correspond
-        const mot_de_passeMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+        const mot_de_passeMatch = await bcrypt.compare(mot_de_passe, user.password);
 
         if (!mot_de_passeMatch) {
             return res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
