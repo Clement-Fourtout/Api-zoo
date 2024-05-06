@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const authRoutes = require('./routes/authRoutes')
-const passport = require('passport');
-const initializePassport = require('./passport-config');
 const PORT = process.env.PORT || 3000;
 
 const pool = new Pool({
