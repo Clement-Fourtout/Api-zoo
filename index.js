@@ -94,7 +94,7 @@ app.post('/login', async (req, res) => {
       }
     } else {
       // Si l'utilisateur n'est pas trouvé, renvoyez une erreur d'authentification
-      res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+      res.status(402).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
     }
   } catch (error) {
     // Gérer les erreurs de base de données
