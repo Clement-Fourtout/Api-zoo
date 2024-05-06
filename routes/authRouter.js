@@ -12,11 +12,6 @@ const pool = new Pool({
     }
 });
 
-async function findUserByUsername(username) {
-    const query = 'SELECT * FROM utilisateurs WHERE nom = $1';
-    const { rows } = await pool.query(query, [username]);
-    return rows[0];
-}
 
 // Route pour la connexion des utilisateurs
 router.post('/login', async (req, res) => {
@@ -49,7 +44,4 @@ router.post('/login', async (req, res) => {
     }
 });
 
-module.exports = {
-    findUserByUsername,
-    router
-};
+module.exports = router;

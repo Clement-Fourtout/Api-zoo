@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const authRouter = require('./routes/authRouter');
 const PORT = process.env.PORT || 3000;
 
 const pool = new Pool({
@@ -13,6 +14,7 @@ const pool = new Pool({
   }
 });
 
+app.use('/auth', authRouter);
 
 // Middleware pour parser le JSON
 app.use(express.json());
