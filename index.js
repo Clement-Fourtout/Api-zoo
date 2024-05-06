@@ -74,7 +74,9 @@ app.delete('/tasks/:id', (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
+  res.setHeader('Access-Control-Allow-Origin', 'https://zoo-arcadia-31989dc8c54b.herokuapp.com');
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   try {
     // Recherchez l'utilisateur dans la base de données par nom d'utilisateur
     const query = 'SELECT * FROM utilisateurs WHERE nom = $1';
