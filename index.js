@@ -4,7 +4,6 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
-const authRoutes = require('./routes/authRoutes')
 const PORT = process.env.PORT || 3000;
 
 const pool = new Pool({
@@ -14,13 +13,10 @@ const pool = new Pool({
   }
 });
 
-initializePassport(passport);
 
-app.use(passport.initialize());
 // Middleware pour parser le JSON
 app.use(express.json());
 
-app.use('/auth', authRoutes);
 
 const corsOptions = {
   origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com',
