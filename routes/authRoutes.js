@@ -8,25 +8,25 @@ const User = require('../models/user'); // Assurez-vous d'avoir un modèle pour 
 
 // Route pour la connexion des utilisateurs
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
+    const { nom, mot_de_passe } = req.body;
 
     try {
         // Recherchez l'utilisateur dans la base de données par nom d'utilisateur
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ nom });
 
         if (!user) {
             return res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
         }
 
         // Vérifiez si le mot de passe correspond
-        const passwordMatch = await bcrypt.compare(password, user.password);
+        const mot_de_passeMatch = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
 
-        if (!passwordMatch) {
+        if (!mot_de_passeMatch) {
             return res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
         }
 
         // Si l'authentification réussit, générez un jeton JWT
-        const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ nom: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Renvoyez le jeton JWT à l'utilisateur
         res.json({ token });
