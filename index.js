@@ -23,26 +23,15 @@ let tasks = [
 ];
 
 // Route de connexion
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
   const { username, password } = req.body;
   // Votre logique d'authentification ici
   // Par exemple, vérifier si les identifiants sont valides dans une base de données
-   const user = await User.findOne({ nom: username });
-
-  if (user) {
-    // Si l'utilisateur est trouvé, vérifiez le mot de passe
-    const match = await bcrypt.compare(password, user.mot_de_passe);
-    
-    if (match) {
-      // Si le mot de passe correspond, générez un jeton JWT et renvoyez-le
-      const token = jwt.sign({ username }, 'votre_clé_secrète', { expiresIn: '1h' });
-      res.json({ token });
-    } else {
-      // Si le mot de passe ne correspond pas, renvoyez une erreur d'authentification
-      res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
-    }
+  if (username === 'admin' && password === 'password') {
+    // Si l'authentification réussit, générez un jeton JWT
+    const token = jwt.sign({ username }, 'votre_clé_secrète', { expiresIn: '1h' });
+    res.json({ token });
   } else {
-    // Si l'utilisateur n'est pas trouvé, renvoyez une erreur d'authentification
     res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
   }
 });
