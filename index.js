@@ -96,6 +96,9 @@ app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'Route protégée', user: req.user });
 });
 
+// Autres routes de votre application...
+// ...
+
 // Démarrer le serveur
 app.listen(PORT, () => {
   console.log(`Serveur démarré sur le port ${PORT}`);
