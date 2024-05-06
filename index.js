@@ -76,31 +76,29 @@ app.post('/login', async (req, res) => {
   const { nom, mot_de_passe  } = req.body;
 
   try {
-    // Recherchez l'utilisateur dans la base de données par nom d'utilisateur
+    console.log('Requête de connexion reçue avec les données suivantes :', { nom });
+
     const query = 'SELECT * FROM utilisateurs WHERE nom = $1';
     const result = await pool.query(query, [nom]);
 
     if (result.rows.length > 0) {
       const user = result.rows[0];
-      // Si l'utilisateur est trouvé, vérifiez le mot de passe
       const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
       
       if (match) {
-        // Si le mot de passe correspond, générez un jeton JWT et renvoyez-le
         const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
         res.json({ token });
       } else {
-        // Si le mot de passe ne correspond pas, renvoyez une erreur d'authentification
+        console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
         res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
       }
     } else {
-      // Si l'utilisateur n'est pas trouvé, renvoyez une erreur d'authentification
+      console.log('Utilisateur non trouvé dans la base de données :', { nom });
       res.status(402).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
     }
   } catch (error) {
-    // Gérer les erreurs de base de données
-    console.error('Erreur de base de données :', error);
-    res.status(500).json({ message: 'Erreur de base de données' });
+    console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
+    res.status(500).json({ message: 'Erreur lors de l\'authentification' });
   }
 });
 
