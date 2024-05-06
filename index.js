@@ -27,7 +27,7 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   // Votre logique d'authentification ici
   // Par exemple, vérifier si les identifiants sont valides dans une base de données
-  const user = await User.findOne({ nom: username });
+   const user = await User.findOne({ nom: username });
 
   if (user) {
     // Si l'utilisateur est trouvé, vérifiez le mot de passe
