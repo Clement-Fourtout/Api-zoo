@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
 const PORT = process.env.PORT || 3000;
 
 const pool = new Pool({
@@ -82,7 +83,7 @@ app.post('/login', async (req, res) => {
     if (result.rows.length > 0) {
       const user = result.rows[0];
       // Si l'utilisateur est trouvé, vérifiez le mot de passe
-      const match = await bcrypt.compare(mot_de_passe , user.mot_de_passe);
+      const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
       
       if (match) {
         // Si le mot de passe correspond, générez un jeton JWT et renvoyez-le
