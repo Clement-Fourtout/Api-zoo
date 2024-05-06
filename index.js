@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+
 const { Pool } = require('pg');
 const PORT = process.env.PORT || 3000;
 
@@ -22,7 +22,55 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 // Données de démonstration - liste de tâches
+let tasks = [
+  { id: 1, title: 'Etat de santé :' },
+  { id: 2, title: 'Nourriture :' },
+  { id: 3, title: 'Grammage :' },
+  { id: 4, title: 'Date de passage :' },
+];
 
+// Récupérer toutes les tâches
+app.get('/tasks', (req, res) => {
+  res.json(tasks);
+});
+
+// Récupérer une tâche par son ID
+app.get('/tasks/:id', (req, res) => {
+  const taskId = parseInt(req.params.id);
+  const task = tasks.find(task => task.id === taskId);
+  if (task) {
+    res.json(task);
+  } else {
+    res.status(404).json({ message: 'Tâche non trouvée' });
+  }
+});
+
+// Ajouter une nouvelle tâche
+app.post('/tasks', (req, res) => {
+  const { title } = req.body;
+  const newTask = { id: tasks.length + 1, title };
+  tasks.push(newTask);
+  res.status(201).json(newTask);
+});
+
+// Mettre à jour une tâche existante
+app.put('/tasks/:id', (req, res) => {
+  const taskId = parseInt(req.params.id);
+  const task = tasks.find(task => task.id === taskId);
+  if (task) {
+    task.title = req.body.title;
+    res.json(task);
+  } else {
+    res.status(404).json({ message: 'Tâche non trouvée' });
+  }
+});
+
+// Supprimer une tâche
+app.delete('/tasks/:id', (req, res) => {
+  const taskId = parseInt(req.params.id);
+  tasks = tasks.filter(task => task.id !== taskId);
+  res.status(204).end();
+});
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
