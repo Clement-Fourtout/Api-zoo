@@ -20,6 +20,7 @@ async function findUserByUsername(username) {
 
 // Route pour la connexion des utilisateurs
 router.post('/login', async (req, res) => {
+    console.log('Requête de connexion reçue'); // Ajoutez ce log pour voir si la requête atteint la route
     const { nom, mot_de_passe } = req.body;
 
     try {
