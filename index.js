@@ -2,8 +2,15 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const { Pool } = require('pg');
 const PORT = process.env.PORT || 3000;
 
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 // Middleware pour parser le JSON
 app.use(express.json());
 
