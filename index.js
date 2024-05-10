@@ -92,6 +92,7 @@ app.post('/login', async (req, res) => {
           if (result.length > 0) {
               const user = result[0];
               const match = await bcrypt.compare(mot_de_passe,user.mot_de_passe);
+              console.log('mot de passe:',{mot_de_passe}) 
 
               if (match) {
                   // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
