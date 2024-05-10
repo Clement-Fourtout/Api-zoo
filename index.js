@@ -77,7 +77,7 @@ app.delete('/tasks/:id', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { nom, mot_de_passe } = req.body;
+  const { nom,mot_de_passe } = req.body;
 
   try {
       console.log('Requête de connexion reçue avec les données suivantes :', { nom });
