@@ -91,7 +91,7 @@ app.post('/login', async (req, res) => {
           }
           if (result.length > 0) {
               const user = result[0];
-              const match = await bcrypt.compare(mot_de_passe, user.labeautedelanature);
+              const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
 
               if (match) {
                   const userPassword = 'labeautedelanature'; // Mot de passe fourni par l'utilisateur
