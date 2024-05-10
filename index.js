@@ -77,39 +77,57 @@ app.delete('/tasks/:id', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-    const { nom, mot_de_passe } = req.body;
+  const { nom, mot_de_passe } = req.body;
 
-    try {
-        console.log('Requête de connexion reçue avec les données suivantes :', { nom });
+  try {
+      console.log('Requête de connexion reçue avec les données suivantes :', { nom });
 
-        const query = 'SELECT * FROM utilisateurs WHERE nom = ?';
-        pool.query(query, [nom], async (err, result) => {
-            if (err) {
-                console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', err);
-                res.status(500).json({ message: 'Erreur lors de l\'authentification' });
-                return;
-            }
-            if (result.length > 0) {
-                const user = result[0];
-                const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+      const query = 'SELECT * FROM utilisateurs WHERE nom = ?';
+      pool.query(query, [nom], async (err, result) => {
+          if (err) {
+              console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', err);
+              res.status(500).json({ message: 'Erreur lors de l\'authentification' });
+              return;
+          }
+          if (result.length > 0) {
+              const user = result[0];
+              const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
 
-                if (match) {
-                    const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
-                    res.json({ token });
-                } else {
-                    console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
-                    res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
-                }
-            } else {
-                console.log('Utilisateur non trouvé dans la base de données :', { nom });
-                res.status(402).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
-            }
-        });
-    } catch (error) {
-        console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
-        res.status(500).json({ message: 'Erreur lors de l\'authentification' });
-    }
+              if (match) {
+                  // Ici vous pouvez intégrer le code fourni pour comparer les mots de passe
+                  // Supprimez les lignes factices ci-dessous et remplacez-les par le code fourni
+                  const userPassword = mot_de_passe;
+                  const hashedPassword = user.mot_de_passe;
+
+                  bcrypt.compare(userPassword, hashedPassword, function(err, result) {
+                      if (err) {
+                          console.error('Erreur lors de la comparaison des mots de passe :', err);
+                          res.status(500).json({ message: 'Erreur lors de l\'authentification' });
+                      } else {
+                          if (result) {
+                              const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
+                              res.json({ token });
+                          } else {
+                              console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
+                              res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+                          }
+                      }
+                  });
+              } else {
+                  console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
+                  res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+              }
+          } else {
+              console.log('Utilisateur non trouvé dans la base de données :', { nom });
+              res.status(402).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+          }
+      });
+  } catch (error) {
+      console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
+      res.status(500).json({ message: 'Erreur lors de l\'authentification' });
+  }
 });
+
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
