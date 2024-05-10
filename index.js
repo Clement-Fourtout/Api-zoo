@@ -91,11 +91,11 @@ app.post('/login', async (req, res) => {
           }
           if (result.length > 0) {
               const user = result[0];
-              const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+              const match = await bcrypt.compare(mot_de_passe, user.labeautedelanature);
 
               if (match) {
                   const userPassword = 'labeautedelanature'; // Mot de passe fourni par l'utilisateur
-                  const hashedPassword = user.mot_de_passe; // Mot de passe haché stocké dans la base de données
+                  const hashedPassword = user.labeautedelanature; // Mot de passe haché stocké dans la base de données
 
                   bcrypt.compare(userPassword, hashedPassword, function(err, result) {
                       if (err) {
@@ -113,16 +113,16 @@ app.post('/login', async (req, res) => {
                   });
               } else {
                   console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
-                  res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+                  res.status(401).json({ message: 'Mot de passe incorrect' });
               }
           } else {
               console.log('Utilisateur non trouvé dans la base de données :', { nom });
-              res.status(402).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+              res.status(402).json({ message: 'Utilisateur non trouvé dans la base de données' });
           }
       });
   } catch (error) {
       console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
-      res.status(500).json({ message: 'Erreur lors de l\'authentification' });
+      res.status(500).json({ message: 'Erreur Base de donnée' });
   }
 });
 
