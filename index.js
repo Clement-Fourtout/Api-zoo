@@ -94,10 +94,8 @@ app.post('/login', async (req, res) => {
               const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
 
               if (match) {
-                  // Ici vous pouvez intégrer le code fourni pour comparer les mots de passe
-                  // Supprimez les lignes factices ci-dessous et remplacez-les par le code fourni
-                  const userPassword = labeautedelanature;
-                  const hashedPassword = user.labeautedelanature;
+                  const userPassword = 'labeautedelanature'; // Mot de passe fourni par l'utilisateur
+                  const hashedPassword = user.mot_de_passe; // Mot de passe haché stocké dans la base de données
 
                   bcrypt.compare(userPassword, hashedPassword, function(err, result) {
                       if (err) {
@@ -127,6 +125,7 @@ app.post('/login', async (req, res) => {
       res.status(500).json({ message: 'Erreur lors de l\'authentification' });
   }
 });
+
 
 
 app.listen(PORT, () => {
