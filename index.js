@@ -92,17 +92,23 @@ app.post('/login', async (req, res) => {
           if (result.length > 0) {
               const user = result[0];
               console.log('Mot de passe haché récupéré depuis la base de données :', user.mot_de_passe);
-              const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
-              console.log('mot de passe:', mot_de_passe);
 
-              if (match) {
-                  // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
-                  const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
-                  res.json({ token });
-              } else {
-                  console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
-                  res.status(401).json({ message: 'Mot de passe incorrect' });
-              }
+              // Utilisez bcrypt.compare() pour comparer les mots de passe hachés
+              bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
+                  if (err) {
+                      console.error('Erreur lors de la comparaison des mots de passe :', err);
+                      res.status(500).json({ message: 'Erreur lors de l\'authentification' });
+                  } else {
+                      if (match) {
+                          // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
+                          const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
+                          res.json({ token });
+                      } else {
+                          console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
+                          res.status(401).json({ message: 'Mot de passe incorrect' });
+                      }
+                  }
+              });
           } else {
               console.log('Utilisateur non trouvé dans la base de données :', { nom });
               res.status(404).json({ message: 'Utilisateur non trouvé' });
