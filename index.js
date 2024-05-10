@@ -4,7 +4,11 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
+const bodyParser = require('body-parser');
 const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
+
 
 const pool = mysql.createPool({
     host: 's554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
@@ -119,6 +123,30 @@ app.post('/login', async (req, res) => {
       res.status(500).json({ message: 'Erreur Base de donnée' });
   }
 });
+
+app.post('/register', async (req, res) => {
+  const { nom, mot_de_passe } = req.body;
+
+  try {
+      // Générer un sel pour le hachage du mot de passe
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
+
+      // Enregistrer le nouvel utilisateur dans la base de données (simulé ici)
+      const newUser = {
+          username: nom,
+          password: hashedPassword
+      };
+
+      // Ici, vous enregistreriez newUser dans votre base de données
+
+      res.status(201).json({ message: 'Utilisateur créé avec succès', user: newUser });
+  } catch (error) {
+      console.error('Erreur lors de la création de l\'utilisateur :', error);
+      res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+  }
+});
+
 
 
 app.listen(PORT, () => {
