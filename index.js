@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const PORT = process.env.PORT || 3000;
 
 const pool = mysql.createPool({
-    host: '	s554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+    host: 's554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
     user: 'khymtarlf49pzb85',
     password: 'bjg5chusdgv0d43k',
     database: 'mmdp8u9ooq9t3162',
