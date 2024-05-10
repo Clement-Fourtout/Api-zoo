@@ -96,8 +96,8 @@ app.post('/login', async (req, res) => {
               if (match) {
                   // Ici vous pouvez intégrer le code fourni pour comparer les mots de passe
                   // Supprimez les lignes factices ci-dessous et remplacez-les par le code fourni
-                  const userPassword = mot_de_passe;
-                  const hashedPassword = user.mot_de_passe;
+                  const userPassword = labeautedelanature;
+                  const hashedPassword = user.labeautedelanature;
 
                   bcrypt.compare(userPassword, hashedPassword, function(err, result) {
                       if (err) {
