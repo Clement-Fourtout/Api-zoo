@@ -132,21 +132,28 @@ app.post('/register', async (req, res) => {
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
 
-      // Enregistrer le nouvel utilisateur dans la base de données (simulé ici)
+      // Créer une nouvelle entrée utilisateur avec le nom d'utilisateur et le mot de passe haché
       const newUser = {
-          username: nom,
-          password: hashedPassword
+          nom: nom,
+          mot_de_passe: hashedPassword
       };
 
-      // Ici, vous enregistreriez newUser dans votre base de données
-
-      res.status(201).json({ message: 'Utilisateur créé avec succès', user: newUser });
+      // Insérer le nouvel utilisateur dans la table "utilisateurs"
+      const query = 'INSERT INTO utilisateurs (nom, mot_de_passe) VALUES (?, ?)';
+      pool.query(query, [newUser.nom, newUser.mot_de_passe], (err, result) => {
+          if (err) {
+              console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
+              res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+          } else {
+              console.log('Utilisateur enregistré avec succès dans la base de données :', newUser);
+              res.status(201).json({ message: 'Utilisateur créé avec succès', user: newUser });
+          }
+      });
   } catch (error) {
       console.error('Erreur lors de la création de l\'utilisateur :', error);
       res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
   }
 });
-
 
 
 app.listen(PORT, () => {
