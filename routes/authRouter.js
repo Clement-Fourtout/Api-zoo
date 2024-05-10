@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.js'); // Assurez-vous d'avoir un modèle pour les utilisateurs
+const User = require('../models/utilisateurs.js'); // Assurez-vous d'avoir un modèle pour les utilisateurs
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
