@@ -91,7 +91,7 @@ app.post('/login', async (req, res) => {
           }
           if (result.length > 0) {
               const user = result[0];
-              const match = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
+              const match = await bcrypt.compare(mot_de_passe,user.mot_de_passe);
 
               if (match) {
                   // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
@@ -99,7 +99,7 @@ app.post('/login', async (req, res) => {
                   res.json({ token });
               } else {
                   console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
-                  res.status(401).json({ message: 'Nom d\'utilisateur ou mot de passe incorrect' });
+                  res.status(401).json({ message: 'Mot de passe incorrect' });
               }
           } else {
               console.log('Utilisateur non trouvé dans la base de données :', { nom });
