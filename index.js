@@ -151,48 +151,34 @@ app.post('/login', async (req, res) => {
     }
 });
   
-app.delete('/delete', async (req, res) => {
-    const { nom, mot_de_passe } = req.body;
+app.delete('/users/:id', async (req, res) => {
+    const userId = req.params.id; // Récupérer l'identifiant de l'utilisateur à supprimer
 
     try {
-        // Vérifier les informations d'identification de l'utilisateur avant de procéder à la suppression
-        const query = 'SELECT * FROM utilisateurs WHERE nom = ?';
-        pool.query(query, [nom], async (err, result) => {
+        // Effectuer une recherche dans la base de données pour vérifier si l'utilisateur existe
+        const query = 'SELECT * FROM utilisateurs WHERE id = ?';
+        pool.query(query, [userId], (err, result) => {
             if (err) {
                 console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', err);
                 res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
-                return;
-            }
-
-            if (result.length > 0) {
-                const user = result[0];
-                // Utiliser bcrypt.compare() pour comparer les mots de passe hachés
-                bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
-                    if (err) {
-                        console.error('Erreur lors de la comparaison des mots de passe :', err);
-                        res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
-                        return;
-                    }
-                    if (match) {
-                        // Supprimer l'utilisateur de la base de données
-                        const deleteQuery = 'DELETE FROM utilisateurs WHERE nom = ?';
-                        pool.query(deleteQuery, [nom], (err, result) => {
-                            if (err) {
-                                console.error('Erreur lors de la suppression de l\'utilisateur de la base de données :', err);
-                                res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
-                            } else {
-                                console.log('Utilisateur supprimé avec succès de la base de données :', { nom });
-                                res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
-                            }
-                        });
-                    } else {
-                        console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
-                        res.status(401).json({ message: 'Mot de passe incorrect' });
-                    }
-                });
             } else {
-                console.log('Utilisateur non trouvé dans la base de données :', { nom });
-                res.status(404).json({ message: 'Utilisateur non trouvé' });
+                if (result.length > 0) {
+                    // L'utilisateur existe, procéder à sa suppression
+                    const deleteQuery = 'DELETE FROM utilisateurs WHERE id = ?';
+                    pool.query(deleteQuery, [userId], (deleteErr, deleteResult) => {
+                        if (deleteErr) {
+                            console.error('Erreur lors de la suppression de l\'utilisateur :', deleteErr);
+                            res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+                        } else {
+                            console.log('Utilisateur supprimé avec succès de la base de données :', userId);
+                            res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+                        }
+                    });
+                } else {
+                    // L'utilisateur n'existe pas, renvoyer une erreur 404
+                    console.error('Utilisateur non trouvé dans la base de données :', userId);
+                    res.status(404).json({ message: 'Utilisateur non trouvé' });
+                }
             }
         });
     } catch (error) {
@@ -200,6 +186,7 @@ app.delete('/delete', async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
     }
 });
+
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
