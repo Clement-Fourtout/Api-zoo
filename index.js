@@ -137,7 +137,7 @@ app.post('/register', async (req, res) => {
         pool.query(query, [nom, hashedPassword, isAdmin], (err, result) => {
             if (err) {
                 console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
-                res.status(204).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+                res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
             } else {
                 console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, isAdmin });
                 res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, isAdmin } });
