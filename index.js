@@ -128,30 +128,27 @@ app.post('/register', async (req, res) => {
     const { nom, mot_de_passe, isAdmin } = req.body;
   
     try {
-      // Vérifiez si l'utilisateur est autorisé à créer un compte administrateur
-      if (isAdmin) {
-        // Ajoutez une logique supplémentaire ici pour vérifier les autorisations, par exemple, une clé d'API ou un jeton d'authentification.
-      }
+        // Générer un sel pour le hachage du mot de passe
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
   
-      // Hashage du mot de passe
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
-  
-      // Enregistrement de l'utilisateur dans la base de données
-      await User.create({
-        nom,
-        mot_de_passe: hashedPassword,
-        isAdmin
-      });
-  
-      res.status(201).json({ message: 'Compte créé avec succès' });
+        // Insérer le nouvel utilisateur dans la table "utilisateurs"
+        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, isAdmin) VALUES (?, ?, ?)';
+        pool.query(query, [nom, hashedPassword, isAdmin], (err, result) => {
+            if (err) {
+                console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
+                res.status(204).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+            } else {
+                console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, isAdmin });
+                res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, isAdmin } });
+            }
+        });
     } catch (error) {
-      console.error('Erreur lors de la création du compte :', error);
-      res.status(500).json({ message: 'Erreur lors de la création du compte' });
+        console.error('Erreur lors de la création de l\'utilisateur :', error);
+        res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
     }
   });
   
-
 
 
 app.listen(PORT, () => {
