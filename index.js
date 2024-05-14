@@ -121,10 +121,8 @@ app.post('/login', async (req, res) => {
                         if (match) {
                             // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
                             const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
-                            // Stockez l'ID utilisateur dans le localStorage
-                            localStorage.setItem('userId', user.id);
                             // Envoyez également le rôle de l'utilisateur dans la réponse JSON
-                            res.json({ token, role: user.role });
+                            res.json({ token, role: user.role, userId: user.id });
                         } else {
                             console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
                             res.status(401).json({ message: 'Mot de passe incorrect' });
