@@ -97,11 +97,11 @@ app.delete('/users/:userId', (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { nom, mot_de_passe } = req.body;
-  
+
     try {
         console.log('Requête de connexion reçue avec les données suivantes :', { nom });
-  
-        const query = 'SELECT * FROM utilisateurs WHERE nom = ?';
+
+        const query = 'SELECT id, mot_de_passe, role FROM utilisateurs WHERE nom = ?';
         pool.query(query, [nom], async (err, result) => {
             if (err) {
                 console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', err);
@@ -111,7 +111,7 @@ app.post('/login', async (req, res) => {
             if (result.length > 0) {
                 const user = result[0];
                 console.log('Mot de passe haché récupéré depuis la base de données :', user.mot_de_passe);
-  
+
                 // Utilisez bcrypt.compare() pour comparer les mots de passe hachés
                 bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
                     if (err) {
@@ -121,6 +121,8 @@ app.post('/login', async (req, res) => {
                         if (match) {
                             // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
                             const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
+                            // Stockez l'ID utilisateur dans le localStorage
+                            localStorage.setItem('userId', user.id);
                             // Envoyez également le rôle de l'utilisateur dans la réponse JSON
                             res.json({ token, role: user.role });
                         } else {
@@ -138,7 +140,8 @@ app.post('/login', async (req, res) => {
         console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
         res.status(500).json({ message: 'Erreur Base de donnée' });
     }
-  });
+});
+
   
 
   app.post('/register', async (req, res) => {
