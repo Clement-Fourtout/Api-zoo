@@ -125,35 +125,32 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/register', async (req, res) => {
-  const { nom, mot_de_passe } = req.body;
-
-  try {
-      // Générer un sel pour le hachage du mot de passe
+    const { nom, mot_de_passe, isAdmin } = req.body;
+  
+    try {
+      // Vérifiez si l'utilisateur est autorisé à créer un compte administrateur
+      if (isAdmin) {
+        // Ajoutez une logique supplémentaire ici pour vérifier les autorisations, par exemple, une clé d'API ou un jeton d'authentification.
+      }
+  
+      // Hashage du mot de passe
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
-
-      // Créer une nouvelle entrée utilisateur avec le nom d'utilisateur et le mot de passe haché
-      const newUser = {
-          nom: nom,
-          mot_de_passe: hashedPassword
-      };
-
-      // Insérer le nouvel utilisateur dans la table "utilisateurs"
-      const query = 'INSERT INTO utilisateurs (nom, mot_de_passe) VALUES (?, ?)';
-      pool.query(query, [newUser.nom, newUser.mot_de_passe], (err, result) => {
-          if (err) {
-              console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
-              res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
-          } else {
-              console.log('Utilisateur enregistré avec succès dans la base de données :', newUser);
-              res.status(201).json({ message: 'Utilisateur créé avec succès', user: newUser });
-          }
+  
+      // Enregistrement de l'utilisateur dans la base de données
+      await User.create({
+        nom,
+        mot_de_passe: hashedPassword,
+        isAdmin
       });
-  } catch (error) {
-      console.error('Erreur lors de la création de l\'utilisateur :', error);
-      res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
-  }
-});
+  
+      res.status(201).json({ message: 'Compte créé avec succès' });
+    } catch (error) {
+      console.error('Erreur lors de la création du compte :', error);
+      res.status(500).json({ message: 'Erreur lors de la création du compte' });
+    }
+  });
+  
 
 
 
