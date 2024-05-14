@@ -74,7 +74,7 @@ app.put('/tasks/:id', (req, res) => {
 });
 
 // Supprimer une tâche
-app.delete('/user', (req, res) => {
+app.delete('/user/:userId', (req, res) => {
     const userId = req.params.userId;
 
     // Requête pour supprimer l'utilisateur de la base de données
