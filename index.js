@@ -74,25 +74,17 @@ app.put('/tasks/:id', (req, res) => {
 });
 
 // Supprimer une tâche
-app.delete('users/:id', (req, res) => {
+app.delete('utilisateurs/:userId', (req, res) => {
     const userId = req.params.userId;
 
-    // Requête pour supprimer l'utilisateur de la base de données
-    const query = 'DELETE FROM utilisateurs WHERE id = ?';
-    pool.query(query, [userId], (err, result) => {
-        if (err) {
-            console.error('Erreur lors de la suppression du compte utilisateur :', err);
-            res.status(500).json({ message: 'Erreur lors de la suppression du compte utilisateur' });
-        } else {
-            if (result.affectedRows > 0) {
-                console.log('Utilisateur supprimé avec succès de la base de données :', { userId });
-                res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
-            } else {
-                console.log('Utilisateur non trouvé dans la base de données :', { userId });
-                res.status(404).json({ message: 'Utilisateur non trouvé' });
-            }
-        }
-    });
+    db.query('DELETE FROM users WHERE id = ?', [userId], (error, result) => {
+             if (error) {
+                 console.error('Erreur lors de la suppression de l\'utilisateur :', error);
+                 res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+             } else {
+                 res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+             }
+         });
 });
 
 app.post('/login', async (req, res) => {
