@@ -151,7 +151,7 @@ app.post('/login', async (req, res) => {
     }
 });
   
-app.delete('/users/:userId', async (req, res) => {
+app.delete('/users/delete', async (req, res) => {
     const { nom, mot_de_passe } = req.body;
 
     try {
