@@ -126,8 +126,8 @@ app.post('/login', async (req, res) => {
   });
   
 
-app.post('/register', async (req, res) => {
-    const { nom, mot_de_passe, isAdmin } = req.body;
+  app.post('/register', async (req, res) => {
+    const { nom, mot_de_passe, role } = req.body;
   
     try {
         // Générer un sel pour le hachage du mot de passe
@@ -135,23 +135,71 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
   
         // Insérer le nouvel utilisateur dans la table "utilisateurs"
-        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, isAdmin) VALUES (?, ?, ?)';
-        pool.query(query, [nom, hashedPassword, isAdmin], (err, result) => {
+        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, role) VALUES (?, ?, ?)';
+        pool.query(query, [nom, hashedPassword, role], (err, result) => {
             if (err) {
                 console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
                 res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
             } else {
-                console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, isAdmin });
-                res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, isAdmin } });
+                console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, role });
+                res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, role } });
             }
         });
     } catch (error) {
         console.error('Erreur lors de la création de l\'utilisateur :', error);
         res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
     }
-  });
+});
   
+app.delete('/delete', async (req, res) => {
+    const { nom, mot_de_passe } = req.body;
 
+    try {
+        // Vérifier les informations d'identification de l'utilisateur avant de procéder à la suppression
+        const query = 'SELECT * FROM utilisateurs WHERE nom = ?';
+        pool.query(query, [nom], async (err, result) => {
+            if (err) {
+                console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', err);
+                res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+                return;
+            }
+
+            if (result.length > 0) {
+                const user = result[0];
+                // Utiliser bcrypt.compare() pour comparer les mots de passe hachés
+                bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
+                    if (err) {
+                        console.error('Erreur lors de la comparaison des mots de passe :', err);
+                        res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+                        return;
+                    }
+                    if (match) {
+                        // Supprimer l'utilisateur de la base de données
+                        const deleteQuery = 'DELETE FROM utilisateurs WHERE nom = ?';
+                        pool.query(deleteQuery, [nom], (err, result) => {
+                            if (err) {
+                                console.error('Erreur lors de la suppression de l\'utilisateur de la base de données :', err);
+                                res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+                            } else {
+                                console.log('Utilisateur supprimé avec succès de la base de données :', { nom });
+                                res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+                            }
+                        });
+                    } else {
+                        console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
+                        res.status(401).json({ message: 'Mot de passe incorrect' });
+                    }
+                });
+            } else {
+                console.log('Utilisateur non trouvé dans la base de données :', { nom });
+                res.status(404).json({ message: 'Utilisateur non trouvé' });
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de la suppression de l\'utilisateur :', error);
+        res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
