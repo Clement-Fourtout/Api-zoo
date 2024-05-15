@@ -187,11 +187,11 @@ app.post('/register', async (req, res) => {
                     to: email,
                     subject: 'Confirmation de création de compte',
                     html: `
+                        <img src="cid:logo" alt="Zoo Arcadia">
                         <p>Bonjour ${nom},</p>
                         <p>Votre compte a été créé avec succès. Bienvenue dans notre entreprise !</p>
                         <p>Votre nom d'utilisateur est : ${nom}.</p>
                         <p>Veuillez contacter l'administrateur pour obtenir votre mot de passe.</p>
-                        <img src="cid:logo" alt="Zoo Arcadia">
                     `,
                     attachments: [{
                         filename: 'Arcadia Zoo.png',
