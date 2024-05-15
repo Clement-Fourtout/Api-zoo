@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 
 const express = require('express');
@@ -166,22 +167,34 @@ app.post('/register', async (req, res) => {
             } else {
                 console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, role });
 
-                // Envoyer un e-mail de confirmation
+                // Envoyer un e-mail de confirmation avec le logo inclus
                 const transporter = nodemailer.createTransport({
-                    host: 'smtp.office365.com', // Serveur SMTP Outlook
-                    port: 587, // Port SMTP pour Outlook
-                    secure: false, // false pour activer le mode STARTTLS (c'est le cas pour le port 587)
+                    service: 'gmail',
                     auth: {
-                        user: process.env.OUTLOOK_EMAIL, // Votre adresse e-mail Outlook
-                        pass: process.env.OUTLOOK_PASSWORD // Votre mot de passe Outlook ou votre jeton d'application
+                        user: process.env.GMAIL_EMAIL,
+                        pass: process.env.GMAIL_PASSWORD
                     }
                 });
 
+                // Lire le contenu de l'image de votre logo
+                const logoContent = fs.readFileSync('./Img/Arcadia Zoo.png');
+
                 const mailOptions = {
-                    from: process.env.OUTLOOK_EMAIL,
+                    from: process.env.GMAIL_EMAIL,
                     to: email,
                     subject: 'Confirmation de création de compte',
-                    text: `Bonjour ${nom}, votre compte a été créé avec succès. Bienvenue dans notre entreprise ! Votre nom d'utilisateur est : ${nom}. Veuillez contacter l'administrateur pour obtenir votre mot de passe.`
+                    html: `
+                        <p>Bonjour ${nom},</p>
+                        <p>Votre compte a été créé avec succès. Bienvenue dans notre entreprise !</p>
+                        <p>Votre nom d'utilisateur est : ${nom}.</p>
+                        <p>Veuillez contacter l'administrateur pour obtenir votre mot de passe.</p>
+                        <img src="cid:logo" alt="Zoo Arcadia">
+                    `,
+                    attachments: [{
+                        filename: 'Arcadia Zoo.png',
+                        content: logoContent,
+                        cid: 'logo' // Identifiant unique pour cette pièce jointe
+                    }]
                 };
 
                 try {
@@ -199,6 +212,7 @@ app.post('/register', async (req, res) => {
         return res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
     }
 });
+
   
 
 
