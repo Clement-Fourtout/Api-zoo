@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -13,10 +12,10 @@ app.use(bodyParser.json());
 
 
 const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: 's554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
+    user: 'khymtarlf49pzb85',
+    password: 'bjg5chusdgv0d43k',
+    database: 'mmdp8u9ooq9t3162',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
