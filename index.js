@@ -168,10 +168,12 @@ app.post('/register', async (req, res) => {
 
                 // Envoyer un e-mail de confirmation
                 const transporter = nodemailer.createTransport({
-                    service: 'gmail',
+                    host: 'smtp.office365.com', // Serveur SMTP Outlook
+                    port: 587, // Port SMTP pour Outlook
+                    secure: false, // false pour activer le mode STARTTLS (c'est le cas pour le port 587)
                     auth: {
-                        user: process.env.GMAIL_EMAIL,
-                        pass: process.env.GMAIL_PASSWORD
+                        user: process.env.OUTLOOK_EMAIL, // Votre adresse e-mail Outlook
+                        pass: process.env.OUTLOOK_PASSWORD // Votre mot de passe Outlook ou votre jeton d'application
                     }
                 });
 
