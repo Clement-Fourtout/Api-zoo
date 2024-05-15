@@ -170,10 +170,12 @@ app.post('/register', async (req, res) => {
 
                 // Envoyer un e-mail de confirmation avec le logo inclus
                 const transporter = nodemailer.createTransport({
-                    service: 'gmail',
+                    host: 'smtp.office365.com',
+                    port: 587,
+                    secure: false,
                     auth: {
-                        user: process.env.GMAIL_EMAIL,
-                        pass: process.env.GMAIL_PASSWORD
+                        user: process.env.OUTLOOK_EMAIL,
+                        pass: process.env.OUTLOOK_PASSWORD
                     }
                 });
 
@@ -181,7 +183,7 @@ app.post('/register', async (req, res) => {
                 const logoContent = fs.readFileSync('./Img/Arcadia Zoo.png');
 
                 const mailOptions = {
-                    from: process.env.GMAIL_EMAIL,
+                    from: process.env.OUTLOOK_EMAIL,
                     to: email,
                     subject: 'Confirmation de création de compte',
                     html: `
