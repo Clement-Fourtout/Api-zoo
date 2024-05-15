@@ -115,7 +115,7 @@ app.post('/login', async (req, res) => {
             }
             if (result.length > 0) {
                 const user = result[0];
-                console.log('Mot de passe haché récupéré depuis la base de données :', user.mot_de_passe);
+                console.log('Mot de passe haché récupéré depuis la base de données : ', user.mot_de_passe);
 
                 // Utilisez bcrypt.compare() pour comparer les mots de passe hachés
                 bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
