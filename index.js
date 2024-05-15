@@ -178,7 +178,7 @@ app.post('/register', async (req, res) => {
                 });
 
                 const mailOptions = {
-                    from: process.env.GMAIL_EMAIL,
+                    from: process.env.OUTLOOK_EMAIL,
                     to: email,
                     subject: 'Confirmation de création de compte',
                     text: `Bonjour ${nom}, votre compte a été créé avec succès. Bienvenue dans notre entreprise ! Votre nom d'utilisateur est : ${nom}. Veuillez contacter l'administrateur pour obtenir votre mot de passe.`
