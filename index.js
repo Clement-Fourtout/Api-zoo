@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -5,16 +6,17 @@ const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
 
 const pool = mysql.createPool({
-    host: 's554ongw9quh1xjs.cbetxkdyhwsb.us-east-1.rds.amazonaws.com',
-    user: 'khymtarlf49pzb85',
-    password: 'bjg5chusdgv0d43k',
-    database: 'mmdp8u9ooq9t3162',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -140,30 +142,57 @@ app.post('/login', async (req, res) => {
     }
 });
 
-  
+function generateSecurePassword() {
+    return Math.random().toString(36).slice(-8);
+}
 
-  app.post('/register', async (req, res) => {
-    const { nom, mot_de_passe, role } = req.body;
-  
+app.post('/register', async (req, res) => {
+    const { nom, role, email, username } = req.body;
+
     try {
-        // Générer un sel pour le hachage du mot de passe
+        // Générer un mot de passe sécurisé de manière asynchrone
+        const mot_de_passe = await generateSecurePassword();
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
-  
+
         // Insérer le nouvel utilisateur dans la table "utilisateurs"
-        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, role) VALUES (?, ?, ?)';
-        pool.query(query, [nom, hashedPassword, role], (err, result) => {
+        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, role, email, username) VALUES (?, ?, ?, ?, ?)';
+        pool.query(query, [nom, hashedPassword, role, email, username], async (err, result) => {
             if (err) {
                 console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
-                res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+                return res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
             } else {
                 console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, role });
-                res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, role } });
+
+                // Envoyer un e-mail de confirmation
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.GMAIL_EMAIL,
+                        pass: process.env.GMAIL_PASSWORD
+                    }
+                });
+
+                const mailOptions = {
+                    from: process.env.GMAIL_EMAIL,
+                    to: email,
+                    subject: 'Confirmation de création de compte',
+                    text: `Bonjour ${nom}, votre compte a été créé avec succès. Bienvenue dans notre entreprise ! Votre nom d'utilisateur est : ${username}. Veuillez contacter l'administrateur pour obtenir votre mot de passe.`
+                };
+
+                try {
+                    await transporter.sendMail(mailOptions);
+                    console.log('E-mail de confirmation envoyé');
+                } catch (error) {
+                    console.error('Erreur lors de l\'envoi de l\'e-mail de confirmation :', error);
+                }
+
+                return res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, role } });
             }
         });
     } catch (error) {
         console.error('Erreur lors de la création de l\'utilisateur :', error);
-        res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
+        return res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
     }
 });
   
