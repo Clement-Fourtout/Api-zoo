@@ -148,7 +148,7 @@ function generateSecurePassword() {
 }
 
 app.post('/register', async (req, res) => {
-    const { nom, role, email, username } = req.body;
+    const { nom, role, email} = req.body;
 
     try {
         // Générer un mot de passe sécurisé de manière asynchrone
@@ -157,8 +157,8 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
 
         // Insérer le nouvel utilisateur dans la table "utilisateurs"
-        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, role, email, username) VALUES (?, ?, ?, ?, ?)';
-        pool.query(query, [nom, hashedPassword, role, email, username], async (err, result) => {
+        const query = 'INSERT INTO utilisateurs (nom, mot_de_passe, role, email) VALUES (?, ?, ?, ?)';
+        pool.query(query, [nom, hashedPassword, role, email,], async (err, result) => {
             if (err) {
                 console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
                 return res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
@@ -178,7 +178,7 @@ app.post('/register', async (req, res) => {
                     from: process.env.GMAIL_EMAIL,
                     to: email,
                     subject: 'Confirmation de création de compte',
-                    text: `Bonjour ${nom}, votre compte a été créé avec succès. Bienvenue dans notre entreprise ! Votre nom d'utilisateur est : ${username}. Veuillez contacter l'administrateur pour obtenir votre mot de passe.`
+                    text: `Bonjour ${nom}, votre compte a été créé avec succès. Bienvenue dans notre entreprise ! Votre nom d'utilisateur est : ${nom}. Veuillez contacter l'administrateur pour obtenir votre mot de passe.`
                 };
 
                 try {
