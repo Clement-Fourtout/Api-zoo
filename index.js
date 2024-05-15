@@ -153,6 +153,7 @@ app.post('/register', async (req, res) => {
     try {
         // Générer un mot de passe sécurisé de manière asynchrone
         const mot_de_passe = await generateSecurePassword();
+        console.log("Mot de passe généré:", mot_de_passe)
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
 
