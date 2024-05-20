@@ -238,14 +238,14 @@ app.get('/avis_attente', (req, res) => {
             console.error('Erreur lors de la récupération des avis en attente :', err);
             return res.status(500).json({ message: 'Erreur lors de la récupération des avis en attente' });
         } else {
-            console.log('Avis en attente récupérés avec succès :', {result});
+            console.log('Avis en attente récupérés avec succès :', result.rows);
             return res.status(200).json(result.rows);
         }
     });
 });
 
-app.get('/avis_valide', (req, res) => {
-    const query = 'SELECT * FROM avis_valide';
+app.get('/avis_valides', (req, res) => {
+    const query = 'SELECT * FROM avis_valides';
     pool.query(query, (err, result) => {
         if (err) {
             console.error('Erreur lors de la récupération des avis validés :', err);
@@ -258,7 +258,7 @@ app.get('/avis_valide', (req, res) => {
 });
 
 app.get('/avis_rejete', (req, res) => {
-    const query = 'SELECT * FROM avis_rejete';
+    const query = 'SELECT * FROM avis_rejeter';
     pool.query(query, (err, result) => {
         if (err) {
             console.error('Erreur lors de la récupération des avis rejetés :', err);
