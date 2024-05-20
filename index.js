@@ -216,6 +216,20 @@ app.post('/register', async (req, res) => {
     }
 });
 
+app.post('/submit-review', (req, res) => {
+    const { pseudo, avis } = req.body;
+
+    const query = 'INSERT INTO avis_attente (pseudo, avis) VALUES (?, ?)';
+    pool.query(query, [pseudo, avis], (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la soumission de l\'avis :', err);
+            return res.status(500).json({ message: 'Erreur lors de la soumission de l\'avis' });
+        } else {
+            console.log('Avis soumis avec succès :', { pseudo, avis });
+            return res.status(200).json({ message: 'Avis soumis avec succès' });
+        }
+    });
+});
   
 
 
