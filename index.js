@@ -230,7 +230,45 @@ app.post('/submit-review', (req, res) => {
         }
     });
 });
-  
+
+app.get('/avis_attente', (req, res) => {
+    const query = 'SELECT * FROM avis_attente';
+    pool.query(query, (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des avis en attente :', err);
+            return res.status(500).json({ message: 'Erreur lors de la récupération des avis en attente' });
+        } else {
+            console.log('Avis en attente récupérés avec succès');
+            return res.status(200).json(result.rows);
+        }
+    });
+});
+
+app.get('/avis_valide', (req, res) => {
+    const query = 'SELECT * FROM avis_valide';
+    pool.query(query, (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des avis validés :', err);
+            return res.status(500).json({ message: 'Erreur lors de la récupération des avis validés' });
+        } else {
+            console.log('Avis validés récupérés avec succès');
+            return res.status(200).json(result.rows);
+        }
+    });
+});
+
+app.get('/avis_rejete', (req, res) => {
+    const query = 'SELECT * FROM avis_rejete';
+    pool.query(query, (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des avis rejetés :', err);
+            return res.status(500).json({ message: 'Erreur lors de la récupération des avis rejetés' });
+        } else {
+            console.log('Avis rejeté récupérés avec succès');
+            return res.status(200).json(result.rows);
+        }
+    });
+});
 
 
 
