@@ -239,6 +239,7 @@ app.get('/avis_attente', (req, res) => {
             return res.status(500).json({ message: 'Erreur lors de la récupération des avis en attente' });
         } else {
             console.log('Avis en attente récupérés avec succès :', {result});
+            console.log('Avis en attente récupérés avec succès :', result.rows);
             return res.status(200).json(result.rows);
         }
     });
