@@ -245,31 +245,66 @@ app.get('/avis_attente', (req, res) => {
     });
 });
 
-app.get('/avis_valides', (req, res) => {
-    const query = 'SELECT * FROM avis_valides';
-    pool.query(query, (err, result) => {
+// Route pour valider un avis
+app.post('/avis_valides', (req, res) => {
+    const { id } = req.body;
+    const querySelect = 'SELECT * FROM avis_attente WHERE id = $1';
+    const queryInsert = 'INSERT INTO avis_valides (pseudo, avis) VALUES ($1, $2)';
+    const queryDelete = 'DELETE FROM avis_attente WHERE id = $1';
+
+    pool.query(querySelect, [id], (err, result) => {
         if (err) {
-            console.error('Erreur lors de la récupération des avis validés :', err);
-            return res.status(500).json({ message: 'Erreur lors de la récupération des avis validés' });
-        } else {
-            console.log('Avis validés récupérés avec succès');
-            return res.status(200).json(result.rows);
+            console.error('Erreur lors de la sélection de l\'avis :', err);
+            return res.status(500).json({ message: 'Erreur lors de la sélection de l\'avis' });
         }
+        const avis = result.rows[0];
+        pool.query(queryInsert, [avis.pseudo, avis.avis], (err) => {
+            if (err) {
+                console.error('Erreur lors de l\'insertion de l\'avis validé :', err);
+                return res.status(500).json({ message: 'Erreur lors de l\'insertion de l\'avis validé' });
+            }
+            pool.query(queryDelete, [id], (err) => {
+                if (err) {
+                    console.error('Erreur lors de la suppression de l\'avis en attente :', err);
+                    return res.status(500).json({ message: 'Erreur lors de la suppression de l\'avis en attente' });
+                }
+                console.log('Avis validé et transféré avec succès');
+                res.status(200).json({ message: 'Avis validé avec succès' });
+            });
+        });
     });
 });
 
-app.get('/avis_rejeter', (req, res) => {
-    const query = 'SELECT * FROM avis_rejeter';
-    pool.query(query, (err, result) => {
+// Route pour rejeter un avis
+app.post('/avis_rejeter', (req, res) => {
+    const { id } = req.body;
+    const querySelect = 'SELECT * FROM avis_attente WHERE id = $1';
+    const queryInsert = 'INSERT INTO avis_rejeter (pseudo, avis) VALUES ($1, $2)';
+    const queryDelete = 'DELETE FROM avis_attente WHERE id = $1';
+
+    pool.query(querySelect, [id], (err, result) => {
         if (err) {
-            console.error('Erreur lors de la récupération des avis rejetés :', err);
-            return res.status(500).json({ message: 'Erreur lors de la récupération des avis rejetés' });
-        } else {
-            console.log('Avis rejeté récupérés avec succès');
-            return res.status(200).json(result.rows);
+            console.error('Erreur lors de la sélection de l\'avis :', err);
+            return res.status(500).json({ message: 'Erreur lors de la sélection de l\'avis' });
         }
+        const avis = result.rows[0];
+        pool.query(queryInsert, [avis.pseudo, avis.avis], (err) => {
+            if (err) {
+                console.error('Erreur lors de l\'insertion de l\'avis rejeté :', err);
+                return res.status(500).json({ message: 'Erreur lors de l\'insertion de l\'avis rejeté' });
+            }
+            pool.query(queryDelete, [id], (err) => {
+                if (err) {
+                    console.error('Erreur lors de la suppression de l\'avis en attente :', err);
+                    return res.status(500).json({ message: 'Erreur lors de la suppression de l\'avis en attente' });
+                }
+                console.log('Avis rejeté et transféré avec succès');
+                res.status(200).json({ message: 'Avis rejeté avec succès' });
+            });
+        });
     });
 });
+
 
 
 
