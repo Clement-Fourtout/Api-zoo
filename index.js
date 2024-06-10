@@ -248,16 +248,16 @@ app.get('/avis_attente', (req, res) => {
 // Route pour valider un avis
 app.post('/avis_valides', (req, res) => {
     const { id } = req.body;
-    const querySelect = 'SELECT * FROM avis_attente WHERE id = $1';
-    const queryInsert = 'INSERT INTO avis_valides (pseudo, avis) VALUES ($1, $2)';
-    const queryDelete = 'DELETE FROM avis_attente WHERE id = $1';
+    const querySelect = 'SELECT * FROM avis_attente WHERE id = ?';
+    const queryInsert = 'INSERT INTO avis_valides (pseudo, avis) VALUES (?, ?)';
+    const queryDelete = 'DELETE FROM avis_attente WHERE id = ?';
 
     pool.query(querySelect, [id], (err, result) => {
         if (err) {
             console.error('Erreur lors de la sélection de l\'avis :', err);
             return res.status(500).json({ message: 'Erreur lors de la sélection de l\'avis' });
         }
-        const avis = result.rows[0];
+        const avis = result[0]; // MySQL renvoie un tableau d'objets rows
         pool.query(queryInsert, [avis.pseudo, avis.avis], (err) => {
             if (err) {
                 console.error('Erreur lors de l\'insertion de l\'avis validé :', err);
@@ -278,16 +278,16 @@ app.post('/avis_valides', (req, res) => {
 // Route pour rejeter un avis
 app.post('/avis_rejeter', (req, res) => {
     const { id } = req.body;
-    const querySelect = 'SELECT * FROM avis_attente WHERE id = $1';
-    const queryInsert = 'INSERT INTO avis_rejeter (pseudo, avis) VALUES ($1, $2)';
-    const queryDelete = 'DELETE FROM avis_attente WHERE id = $1';
+    const querySelect = 'SELECT * FROM avis_attente WHERE id = ?';
+    const queryInsert = 'INSERT INTO avis_rejet (pseudo, avis) VALUES (?, ?)';
+    const queryDelete = 'DELETE FROM avis_attente WHERE id = ?';
 
     pool.query(querySelect, [id], (err, result) => {
         if (err) {
             console.error('Erreur lors de la sélection de l\'avis :', err);
             return res.status(500).json({ message: 'Erreur lors de la sélection de l\'avis' });
         }
-        const avis = result.rows[0];
+        const avis = result[0]; // MySQL renvoie un tableau d'objets rows
         pool.query(queryInsert, [avis.pseudo, avis.avis], (err) => {
             if (err) {
                 console.error('Erreur lors de l\'insertion de l\'avis rejeté :', err);
@@ -304,6 +304,7 @@ app.post('/avis_rejeter', (req, res) => {
         });
     });
 });
+
 
 
 
