@@ -305,6 +305,18 @@ app.post('/avis_rejeter', (req, res) => {
     });
 });
 
+// Route pour récupérer les avis validés
+app.get('/avis_valides', (req, res) => {
+    const query = 'SELECT * FROM avis_valides';
+    pool.query(query, (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des avis validés :', err);
+            return res.status(500).json({ message: 'Erreur lors de la récupération des avis validés' });
+        }
+        console.log('Avis validés récupérés avec succès :', result);
+        return res.status(200).json(result);
+    });
+});
 
 
 
