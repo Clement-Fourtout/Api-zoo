@@ -258,7 +258,7 @@ app.get('/avis_valides', (req, res) => {
     });
 });
 
-app.get('/avis_rejete', (req, res) => {
+app.get('/avis_rejeter', (req, res) => {
     const query = 'SELECT * FROM avis_rejeter';
     pool.query(query, (err, result) => {
         if (err) {
