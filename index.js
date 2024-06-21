@@ -11,10 +11,23 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './images/'); // Dossier où les fichiers seront sauvegardés
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + '-' + file.originalname); // Nom du fichier sur le serveur
+    },
+  });
+  
+  const upload = multer({ storage: storage });
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -332,19 +345,43 @@ app.get('/services', (req, res) => {
 
 
   // Ajouter un service
-  app.post('/services', (req, res) => {
-    const { title, description, image_url } = req.body;
-  
-    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url], (err, result) => {
-      if (err) {
-        console.error('Erreur lors de l\'ajout du service :', err);
+  app.post('/services', async (req, res) => {
+    const { title, description } = req.body;
+    const image = req.files.image; // Assurez-vous d'avoir configuré multer pour gérer les fichiers
+
+    // Vérifiez si les champs requis sont présents
+    if (!title || !description || !image) {
+        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une image.' });
+    }
+
+    // Générez un nom de fichier unique pour l'image
+    const fileName = uuidv4() + '-' + image.name;
+
+    // Chemin où enregistrer l'image sur le serveur (assurez-vous que le dossier 'images' existe)
+    const imagePath = __dirname + '/images/' + fileName;
+
+    try {
+        // Écrivez le fichier image sur le disque
+        fs.writeFileSync(imagePath, image.data);
+
+        // URL relative de l'image à stocker dans la base de données
+        const imageUrl = '/images/' + fileName;
+
+        // Requête SQL pour insérer les données
+        const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+        pool.query(query, [title, description, imageUrl], (err, result) => {
+            if (err) {
+                console.error('Erreur lors de l\'ajout du service :', err);
+                return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+            }
+            console.log('Service ajouté avec succès :', result);
+            return res.status(201).json({ id: result.insertId, title, description, image_url: imageUrl });
+        });
+    } catch (error) {
+        console.error('Erreur lors du traitement du fichier :', error);
         return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
-      }
-      console.log('Service ajouté avec succès :', result);
-      return res.status(201).json({ id: result.insertId, title, description, image_url });
-    });
-  });
+    }
+});
   
   
   
