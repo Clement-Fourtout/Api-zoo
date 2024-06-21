@@ -328,10 +328,15 @@ app.get('/services', (req, res) => {
       }
     });
   });
-  
-  // Créer un nouveau service
+
+
+  // Ajouter un service
   app.post('/services', (req, res) => {
     const { title, description, image_url } = req.body;
+  
+    // Vérifiez que les valeurs sont correctement extraites du corps de la requête
+    console.log('Données reçues :', title, description, image_url);
+  
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
       if (err) {
@@ -342,6 +347,7 @@ app.get('/services', (req, res) => {
       return res.status(201).json({ id: result.insertId, title, description, image_url });
     });
   });
+  
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
