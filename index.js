@@ -332,19 +332,25 @@ app.get('/services', (req, res) => {
 
 
   // Ajouter un service
-  app.post('/services', (req, res) => {
+  app.post('/services', async (req, res) => {
     const { title, description, image_url } = req.body;
-  
+
+    // Vérifiez si les champs requis sont présents
+    if (!title || !description || !image_url) {
+        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une URL d\'image.' });
+    }
+
+    // Requête SQL pour insérer les données
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
-      if (err) {
-        console.error('Erreur lors de l\'ajout du service :', err);
-        return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
-      }
-      console.log('Service ajouté avec succès :', result);
-      return res.status(201).json({ id: result.insertId, title, description, image_url });
+        if (err) {
+            console.error('Erreur lors de l\'ajout du service :', err);
+            return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+        }
+        console.log('Service ajouté avec succès :', result);
+        return res.status(201).json({ id: result.insertId, title, description, image_url });
     });
-  });
+});
   
   
   
