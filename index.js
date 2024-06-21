@@ -333,41 +333,17 @@ app.get('/services', (req, res) => {
 
 
   // Ajouter un service
-  app.post('/services', upload.single('image'), (req, res) => {
-    const { title, description } = req.body;
-    const image = req.file; // Le fichier image est accessible via req.file
+  app.post('/services', (req, res) => {
+    const { title, description, image_url } = req.body;
   
-    // Vérifiez si une image a été téléchargée
-    if (!image) {
-      return res.status(400).json({ message: 'Veuillez fournir une image' });
-    }
-  
-    // Générez un nom de fichier unique pour l'image
-    const fileName = 'service_' + Date.now() + '_' + image.originalname; // Utilisation d'une extension de fichier spécifique si nécessaire
-  
-    // Chemin où enregistrer l'image sur le serveur
-    const imagePath = path.join(__dirname, 'images', fileName); // Assurez-vous que le dossier 'images' existe
-  
-    // Déplacez le fichier image téléchargé vers le chemin d'image spécifié
-    fs.rename(image.path, imagePath, (err) => {
+    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+    pool.query(query, [title, description, image_url], (err, result) => {
       if (err) {
-        console.error('Erreur lors du déplacement du fichier :', err);
+        console.error('Erreur lors de l\'ajout du service :', err);
         return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
       }
-  
-      // URL relative de l'image à stocker dans la base de données
-      const imageUrl = '/images/' + fileName;
-  
-      // Requête SQL pour insérer les données
-      const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-      pool.query(query, [title, description, imageUrl], (err, result) => {
-        if (err) {
-          console.error('Erreur lors de l\'ajout du service :', err);
-          return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
-        }
-        console.log('Service ajouté avec succès :', result);
-        return res.status(201).json({ id: result.insertId, title, description, image_url: imageUrl });
-      });
+      console.log('Service ajouté avec succès :', result);
+      return res.status(201).json({ id: result.insertId, title, description, image_url });
     });
   });
   
