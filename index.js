@@ -334,11 +334,8 @@ app.get('/services', (req, res) => {
   app.post('/services', (req, res) => {
     const { title, description, image_url } = req.body;
   
-    // Vérifiez que les valeurs sont correctement extraites du corps de la requête
-    console.log('Données reçues :', title, description, image_url);
-  
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url], (err, result) => {
+    pool.query(query, [title, description, image_url || ''], (err, result) => {
       if (err) {
         console.error('Erreur lors de l\'ajout du service :', err);
         return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
@@ -347,6 +344,7 @@ app.get('/services', (req, res) => {
       return res.status(201).json({ id: result.insertId, title, description, image_url });
     });
   });
+  
   
   
   // Mettre à jour un service existant
