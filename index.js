@@ -331,41 +331,48 @@ app.get('/services', (req, res) => {
   
   // Créer un nouveau service
   app.post('/services', (req, res) => {
-    const newService = req.body;
-    pool.query('INSERT INTO services SET ?', newService, (err, result) => {
+    const { title, description, image_url } = req.body;
+    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+    pool.query(query, [title, description, image_url], (err, result) => {
       if (err) {
-        console.error('Erreur lors de la création du service :', err);
-        res.status(500).json({ error: 'Erreur serveur lors de la création du service' });
-      } else {
-        res.json({ id: result.insertId, ...newService });
+        console.error('Erreur lors de l\'ajout du service :', err);
+        return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
       }
+      console.log('Service ajouté avec succès :', result);
+      return res.status(201).json({ id: result.insertId, title, description, image_url });
     });
   });
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
-    const updatedService = req.body;
-    pool.query('UPDATE services SET ? WHERE id = ?', [updatedService, req.params.id], (err, result) => {
+    const { id } = req.params;
+    const { title, description, image_url } = req.body;
+    const query = 'UPDATE services SET title = ?, description = ?, image_url = ? WHERE id = ?';
+    pool.query(query, [title, description, image_url, id], (err, result) => {
       if (err) {
-        console.error('Erreur lors de la mise à jour du service :', err);
-        res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du service' });
-      } else {
-        res.json(result);
+        console.error('Erreur lors de la modification du service :', err);
+        return res.status(500).json({ message: 'Erreur lors de la modification du service' });
       }
+      console.log('Service modifié avec succès :', result);
+      return res.status(200).json({ id, title, description, image_url });
     });
   });
   
+  
   // Supprimer un service
   app.delete('/services/:id', (req, res) => {
-    pool.query('DELETE FROM services WHERE id = ?', [req.params.id], (err, result) => {
+    const { id } = req.params;
+    const query = 'DELETE FROM services WHERE id = ?';
+    pool.query(query, [id], (err, result) => {
       if (err) {
         console.error('Erreur lors de la suppression du service :', err);
-        res.status(500).json({ error: 'Erreur serveur lors de la suppression du service' });
-      } else {
-        res.json(result);
+        return res.status(500).json({ message: 'Erreur lors de la suppression du service' });
       }
+      console.log('Service supprimé avec succès :', result);
+      return res.status(200).json({ message: 'Service supprimé avec succès' });
     });
   });
+  
 
 
 app.listen(PORT, () => {
