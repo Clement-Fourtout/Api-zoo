@@ -318,7 +318,39 @@ app.get('/avis_valides', (req, res) => {
     });
 });
 
-
+// Gestion des services
+app.get('/services', (req, res) => {
+    db.query('SELECT * FROM services', (err, results) => {
+      if (err) throw err;
+      res.json(results);
+    });
+  });
+  
+  // Création
+  app.post('/services', (req, res) => {
+    const newService = req.body;
+    db.query('INSERT INTO services SET ?', newService, (err, result) => {
+      if (err) throw err;
+      res.json({ id: result.insertId, ...newService });
+    });
+  });
+  
+  // Mise à jour
+  app.put('/services/:id', (req, res) => {
+    const updatedService = req.body;
+    db.query('UPDATE services SET ? WHERE id = ?', [updatedService, req.params.id], (err, result) => {
+      if (err) throw err;
+      res.json(result);
+    });
+  });
+  
+  // Supprimer
+  app.delete('/services/:id', (req, res) => {
+    db.query('DELETE FROM services WHERE id = ?', [req.params.id], (err, result) => {
+      if (err) throw err;
+      res.json(result);
+    });
+  });
 
 
 app.listen(PORT, () => {
