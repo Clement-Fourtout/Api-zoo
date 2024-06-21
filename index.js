@@ -1,8 +1,7 @@
 
 require('dotenv').config();
 
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+
 const fs = require('fs');
 const express = require('express');
 const app = express();
