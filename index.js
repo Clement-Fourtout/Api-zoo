@@ -1,6 +1,7 @@
 
 require('dotenv').config();
 
+const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const app = express();
@@ -331,19 +332,49 @@ app.get('/services', (req, res) => {
 
 
   // Ajouter un service
-  app.post('/services', (req, res) => {
-    const { title, description, image_url } = req.body;
+  aapp.post('/services', (req, res) => {
+    const { title, description, imageBase64 } = req.body;
   
-    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url || ''], (err, result) => {
-      if (err) {
-        console.error('Erreur lors de l\'ajout du service :', err);
-        return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
-      }
-      console.log('Service ajouté avec succès :', result);
-      return res.status(201).json({ id: result.insertId, title, description, image_url });
-    });
+    // Vérifier si une image en base64 est transmise
+    if (imageBase64) {
+      // Convertir la base64 en fichier image
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+  
+      // Générer un nom de fichier unique pour l'image
+      const fileName = 'service_' + Date.now() + '.png'; // Exemple de nom de fichier
+  
+      // Chemin où enregistrer l'image sur le serveur
+      const imagePath = path.join(__dirname, 'images', fileName); // Assurez-vous que le dossier 'images' existe
+  
+      // Écrire le fichier sur le serveur
+      fs.writeFile(imagePath, imageBuffer, (err) => {
+        if (err) {
+          console.error('Erreur lors de l\'écriture de l\'image :', err);
+          return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+        }
+  
+        // Insertion des données dans la base de données
+        const imageUrl = '/images/' + fileName; // Chemin relatif de l'image
+  
+        // Requête SQL pour insérer les données
+        const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+        pool.query(query, [title, description, imageUrl], (err, result) => {
+          if (err) {
+            console.error('Erreur lors de l\'ajout du service :', err);
+            return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+          }
+          console.log('Service ajouté avec succès :', result);
+          return res.status(201).json({ id: result.insertId, title, description, image_url: imageUrl });
+        });
+      });
+    } else {
+      // Si aucune image n'est fournie, gérer le cas en conséquence
+      console.log('Aucune image transmise avec la requête');
+      return res.status(400).json({ message: 'Veuillez fournir une image' });
+    }
   });
+  
   
   
   
