@@ -346,7 +346,7 @@ app.get('/services', (req, res) => {
   const router = express.Router();
 
   // Route POST pour ajouter un service avec téléchargement de fichier
-  router.post('/services', upload.single('image'), (req, res) => {
+app.post('/services', upload.single('image'), (req, res) => {
     const { title, description } = req.body;
     const image_url = req.file ? req.file.path : null; // Chemin où multer a enregistré le fichier
 
