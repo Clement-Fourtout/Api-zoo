@@ -15,7 +15,6 @@ const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 const upload = require('../config/multerConfig');
-require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
