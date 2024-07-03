@@ -15,6 +15,7 @@ const multer = require('multer');
 const path = require('path');
 const router = express.Router();
 const upload = require('../config/multerConfig');
+require('dotenv').config();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -29,7 +30,7 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
+app.use(cors());
 // Middleware pour parser le JSON
 app.use(express.json());
 
@@ -40,10 +41,10 @@ const corsOptions = {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/'); // Spécifiez le répertoire où vous souhaitez enregistrer les fichiers localement
+      cb(null, 'uploads/'); // Dossier où les fichiers seront enregistrés localement
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname); // Nommez les fichiers téléchargés de manière unique
+      cb(null, Date.now() + '-' + file.originalname); // Nom unique pour chaque fichier
     }
   });
 
@@ -345,30 +346,20 @@ app.get('/services', (req, res) => {
 
 
   const upload = multer({ storage: storage });
-  
-  router.post('/upload', upload.single('file'), (req, res) => {
-    // Code pour gérer la réponse après le téléchargement du fichier
-    res.status(200).send('Fichier téléchargé avec succès.');
+
+  app.post('/upload', upload.single('file'), (req, res) => {
+    // Cette route gère le téléchargement d'un seul fichier avec le champ 'file'
+    res.status(200).json({ message: 'Fichier téléchargé avec succès' });
   });
 
   // Route POST pour ajouter un service avec téléchargement de fichier
   app.post('/services', upload.single('image'), (req, res) => {
     const { title, description } = req.body;
-    const imageUrl = req.file.path;
+    const imageUrl = req.file.path; // Chemin local où le fichier est enregistré
   
-    // Sauvegarde dans votre base de données (JawsDB)
-    // Exemple simplifié, vous devrez adapter cette partie à votre propre base de données
-    // Vous pouvez utiliser un ORM comme Sequelize pour simplifier cela avec MySQL
-    const newService = {
-      title,
-      description,
-      image_url: imageUrl,
-    };
-  
-    // Code pour sauvegarder newService dans JawsDB
-    // Ici, vous devriez écrire le code pour insérer newService dans votre base de données
-  
-    res.json({ message: 'Service ajouté avec succès', service: newService });
+    // Ici, vous devriez insérer le service dans votre base de données avec l'URL de l'image
+    
+    res.json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
   });
 
   
