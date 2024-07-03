@@ -13,6 +13,8 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const router = express.Router();
+const upload = require('../config/multerConfig');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -38,11 +40,10 @@ const corsOptions = {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/'); // Répertoire de destination pour les fichiers téléchargés
+      cb(null, 'uploads/'); // Spécifiez le répertoire où vous souhaitez enregistrer les fichiers localement
     },
     filename: function (req, file, cb) {
-      // Générer un nom de fichier unique (par exemple, en ajoutant un timestamp)
-      cb(null, Date.now() + '-' + file.originalname);
+      cb(null, Date.now() + '-' + file.originalname); // Nommez les fichiers téléchargés de manière unique
     }
   });
 
@@ -344,7 +345,11 @@ app.get('/services', (req, res) => {
 
 
   const upload = multer({ storage: storage });
-  const router = express.Router();
+  
+  router.post('/upload', upload.single('file'), (req, res) => {
+    // Code pour gérer la réponse après le téléchargement du fichier
+    res.status(200).send('Fichier téléchargé avec succès.');
+  });
 
   // Route POST pour ajouter un service avec téléchargement de fichier
   app.post('/services', upload.single('image'), (req, res) => {
