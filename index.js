@@ -11,6 +11,8 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -33,6 +35,15 @@ const corsOptions = {
     origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com',
     optionsSuccessStatus: 200
 };
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/') // Dossier où enregistrer les fichiers téléchargés
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname)); // Renommer le fichier avec une extension originale
+    }
+});
 
 app.use(cors(corsOptions));
 
@@ -331,31 +342,31 @@ app.get('/services', (req, res) => {
   });
 
 
-  app.post('/services', async (req, res) => {
-    try {
-      const { title, description, image_url } = req.body;
-  
-      // Vérifiez si les champs requis sont présents
-      if (!title || !description || !image_url) {
-        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une URL d\'image.' });
-      }
-  
-      // Requête SQL pour insérer les données
-      const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-      pool.query(query, [title, description, image_url], (err, result) => {
+  const upload = multer({ storage: storage });
+  const router = express.Router();
+
+  // Route POST pour ajouter un service avec téléchargement de fichier
+  router.post('/services', upload.single('image'), (req, res) => {
+    const { title, description } = req.body;
+    const image_url = req.file ? req.file.path : null; // Chemin où multer a enregistré le fichier
+
+    // Vérifiez si les champs requis sont présents
+    if (!title || !description || !image_url) {
+        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une image.' });
+    }
+
+    // Requête SQL pour insérer les données
+    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+    pool.query(query, [title, description, image_url], (err, result) => {
         if (err) {
-          console.error('Erreur lors de l\'ajout du service :', err);
-          return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+            console.error('Erreur lors de l\'ajout du service :', err);
+            return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
         }
         console.log('Service ajouté avec succès :', result);
         return res.status(201).json({ id: result.insertId, title, description, image_url });
-      });
-    } catch (error) {
-      console.error('Erreur inattendue :', error);
-      return res.status(500).json({ message: 'Erreur serveur inattendue' });
-    }
-  });
-  
+    });
+});
+
   
   
   // Mettre à jour un service existant
@@ -398,7 +409,8 @@ app.get('/services', (req, res) => {
       return res.status(200).json({ message: 'Service supprimé avec succès' });
     });
   });
-  
+
+app.use('/api', router);
 
 
 app.listen(PORT, () => {
