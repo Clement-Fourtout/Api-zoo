@@ -38,11 +38,12 @@ const corsOptions = {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/'); // Répertoire où stocker les fichiers téléchargés
+      cb(null, 'uploads/'); // Répertoire de destination pour les fichiers téléchargés
     },
     filename: function (req, file, cb) {
-      cb(null, Date.now() + path.extname(file.originalname)); // Nom du fichier unique
-    },
+      // Générer un nom de fichier unique (par exemple, en ajoutant un timestamp)
+      cb(null, Date.now() + '-' + file.originalname);
+    }
   });
 
 app.use(cors(corsOptions));
