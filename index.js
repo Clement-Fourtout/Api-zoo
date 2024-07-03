@@ -331,42 +331,57 @@ app.get('/services', (req, res) => {
   });
 
 
-  // Ajouter un service
   app.post('/services', async (req, res) => {
-    const { title, description, image_url } = req.body;
-
-    // Vérifiez si les champs requis sont présents
-    if (!title || !description || !image_url) {
+    try {
+      const { title, description, image_url } = req.body;
+  
+      // Vérifiez si les champs requis sont présents
+      if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une URL d\'image.' });
-    }
-
-    // Requête SQL pour insérer les données
-    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url], (err, result) => {
+      }
+  
+      // Requête SQL pour insérer les données
+      const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+      pool.query(query, [title, description, image_url], (err, result) => {
         if (err) {
-            console.error('Erreur lors de l\'ajout du service :', err);
-            return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
+          console.error('Erreur lors de l\'ajout du service :', err);
+          return res.status(500).json({ message: 'Erreur lors de l\'ajout du service' });
         }
         console.log('Service ajouté avec succès :', result);
         return res.status(201).json({ id: result.insertId, title, description, image_url });
-    });
-});
+      });
+    } catch (error) {
+      console.error('Erreur inattendue :', error);
+      return res.status(500).json({ message: 'Erreur serveur inattendue' });
+    }
+  });
   
   
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, description, image_url } = req.body;
-    const query = 'UPDATE services SET title = ?, description = ?, image_url = ? WHERE id = ?';
-    pool.query(query, [title, description, image_url, id], (err, result) => {
-      if (err) {
-        console.error('Erreur lors de la modification du service :', err);
-        return res.status(500).json({ message: 'Erreur lors de la modification du service' });
+    try {
+      const { id } = req.params;
+      const { title, description, image_url } = req.body;
+  
+      // Vérifiez si les champs requis sont présents
+      if (!title || !description || !image_url) {
+        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une URL d\'image.' });
       }
-      console.log('Service modifié avec succès :', result);
-      return res.status(200).json({ id, title, description, image_url });
-    });
+  
+      const query = 'UPDATE services SET title = ?, description = ?, image_url = ? WHERE id = ?';
+      pool.query(query, [title, description, image_url, id], (err, result) => {
+        if (err) {
+          console.error('Erreur lors de la modification du service :', err);
+          return res.status(500).json({ message: 'Erreur lors de la modification du service' });
+        }
+        console.log('Service modifié avec succès :', result);
+        return res.status(200).json({ id, title, description, image_url });
+      });
+    } catch (error) {
+      console.error('Erreur inattendue :', error);
+      return res.status(500).json({ message: 'Erreur serveur inattendue' });
+    }
   });
   
   
