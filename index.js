@@ -353,7 +353,7 @@ app.get('/services', (req, res) => {
     const { id, title, description, image_url } = req.body;
   
     // Vérifiez que les données requises sont présentes
-    if (!id || !title || !description || !image_url) {
+    if ( !title || !description || !image_url) {
       return res.status(400).json({ message: 'Les champs id, title, description et image_url sont requis.' });
     }
   
