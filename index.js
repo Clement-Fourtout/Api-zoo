@@ -347,20 +347,24 @@ app.get('/services', (req, res) => {
   const router = express.Router();
 
   // Route POST pour ajouter un service avec téléchargement de fichier
-  app.post('/services', (req, res) => {
-    const { title, description, image_url } = req.body;
-
-    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url], (err, result) => {
-        if (err) {
-            console.error('Erreur lors de l\'insertion du service :', err);
-            return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
-        }
-        console.log('Service ajouté avec succès :', { title, description, image_url });
-        return res.status(200).json({ message: 'Service ajouté avec succès', service: { title, description, image_url } });
-    });
-});
-
+  app.post('/services', upload.single('image'), (req, res) => {
+    const { title, description } = req.body;
+    const imageUrl = req.file.path;
+  
+    // Sauvegarde dans votre base de données (JawsDB)
+    // Exemple simplifié, vous devrez adapter cette partie à votre propre base de données
+    // Vous pouvez utiliser un ORM comme Sequelize pour simplifier cela avec MySQL
+    const newService = {
+      title,
+      description,
+      image_url: imageUrl,
+    };
+  
+    // Code pour sauvegarder newService dans JawsDB
+    // Ici, vous devriez écrire le code pour insérer newService dans votre base de données
+  
+    res.json({ message: 'Service ajouté avec succès', service: newService });
+  });
 
   
   
