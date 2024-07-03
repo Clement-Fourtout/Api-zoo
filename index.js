@@ -351,7 +351,8 @@ app.get('/services', (req, res) => {
   // Route POST pour ajouter un service avec téléchargement de fichier
   app.post('/services', (req, res) => {
     const { title, description, image_url } = req.body;
-
+    console.log('Requête POST reçue vers /services');
+    console.log('Données reçues :', { title, description, image_url });
     // Ajoutez une vérification pour vous assurer que les données sont présentes
     if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
