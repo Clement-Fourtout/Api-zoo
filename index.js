@@ -34,7 +34,8 @@ app.use(express.json());
 const corsOptions = {
     origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com',
     optionsSuccessStatus: 200,
-    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes HTTP autorisées
+    allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
 const storage = multer.diskStorage({
