@@ -11,11 +11,8 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
-const aws = require('aws-sdk');
 const multer = require('multer');
-const multerS3 = require('multer-s3');
 const path = require('path');
-const upload = require('./multerS3Config');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -39,27 +36,14 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 
-aws.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Remplacez par votre access key ID AWS
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Remplacez par votre secret access key AWS
-    region: process.env.AWS_REGION, // Remplacez par la région AWS appropriée
-  });
-
-const s3 = new aws.S3();
-
-const upload = multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: process.env.S3_BUCKET, // Remplacez par le nom de votre bucket S3
-      acl: 'public-read', // Permissions de lecture publique
-      metadata: function (req, file, cb) {
-        cb(null, { fieldName: file.fieldname });
-      },
-      key: function (req, file, cb) {
-        cb(null, Date.now().toString() + '-' + file.originalname);
-      },
-      serverSideEncryption: 'aws:kms', // Utilisation de KMS pour le chiffrement côté serveur
-    })
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/'); // Répertoire de destination pour les fichiers téléchargés
+    },
+    filename: function (req, file, cb) {
+      // Générer un nom de fichier unique (par exemple, en ajoutant un timestamp)
+      cb(null, Date.now() + '-' + file.originalname);
+    }
   });
 
 app.use(cors(corsOptions));
@@ -359,21 +343,30 @@ app.get('/services', (req, res) => {
   });
 
 
-
+  const upload = multer({ storage: storage });
   const router = express.Router();
 
   // Route POST pour ajouter un service avec téléchargement de fichier
-  app.post('/services', upload.single('image_url'), (req, res) => {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).send('Aucun fichier téléchargé.');
-    }
-    res.send('Fichier téléchargé avec succès.');
+  app.post('/services', upload.single('image'), (req, res) => {
+    const { title, description } = req.body;
+    const imageUrl = req.file.path;
+  
+    // Sauvegarde dans votre base de données (JawsDB)
+    // Exemple simplifié, vous devrez adapter cette partie à votre propre base de données
+    // Vous pouvez utiliser un ORM comme Sequelize pour simplifier cela avec MySQL
+    const newService = {
+      title,
+      description,
+      image_url: imageUrl,
+    };
+  
+    // Code pour sauvegarder newService dans JawsDB
+    // Ici, vous devriez écrire le code pour insérer newService dans votre base de données
+  
+    res.json({ message: 'Service ajouté avec succès', service: newService });
   });
 
-  app.post('/upload', upload.single('file'), (req, res) => {
-    res.json({ message: 'File uploaded successfully', fileUrl: req.file.location });
-  });
+  
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
