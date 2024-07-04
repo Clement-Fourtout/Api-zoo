@@ -41,14 +41,31 @@ const corsOptions = {
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-      cb(null, 'uploads/'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
+      cb(null, './uploads'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
     },
     filename: function(req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname); // Nom du fichier
     }
   });
   
-  const upload = multer({ storage: storage });
+  const upload = multer({
+    storage: storage,
+    fileFilter: (req, file, cb) => {
+      // Vérification du type de fichier si nécessaire
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Ce type de fichier n\'est pas pris en charge'), false);
+      }
+    }
+  });
+  app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+      res.status(400).send({ error: 'Une erreur s\'est produite lors du téléchargement du fichier.' });
+    } else {
+      res.status(500).send({ error: err.message });
+    }
+  });
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
@@ -348,7 +365,6 @@ app.get('/services', (req, res) => {
 
 
   app.post('/uploads', upload.single('file'), (req, res) => {
-    // Gérer la réponse ici, par exemple :
     res.json({ message: 'Fichier téléchargé avec succès' });
   });
  
