@@ -13,7 +13,6 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
