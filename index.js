@@ -39,9 +39,6 @@ const corsOptions = {
 };
 
 
-
-
-
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
       cb(null, 'uploads/'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
@@ -53,7 +50,7 @@ const storage = multer.diskStorage({
   
 const upload = multer({ storage: storage });
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
 
 let tasks = [
