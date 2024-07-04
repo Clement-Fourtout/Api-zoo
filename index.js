@@ -41,7 +41,7 @@ const corsOptions = {
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-      cb(null, 'uploads/'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
+      cb(null, 'uploads/uploads/'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
     },
     filename: function(req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname); // Nom du fichier
