@@ -364,10 +364,6 @@ app.get('/services', (req, res) => {
   });
 
 
-  app.post('/uploads', upload.single('file'), (req, res) => {
-    res.json({ message: 'Fichier téléchargé avec succès' });
-  });
- 
   
   app.post('/services', upload.single('image_url'), (req, res) => {
     console.log('Requête POST reçue vers /services');
@@ -394,8 +390,6 @@ app.get('/services', (req, res) => {
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
 });
-
-
 
 
 
