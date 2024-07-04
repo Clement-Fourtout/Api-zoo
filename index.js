@@ -379,13 +379,7 @@ app.get('/services', (req, res) => {
         console.log('Service ajouté avec succès :', { title, description, image_url });
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
-    setTimeout(() => {
-        // Une fois l'opération terminée, envoyer la réponse
-        res.json({ title, description, image_url });
-      }, 1000); // Exemple de délai pour simuler une opération asynchrone
-    });
-
-
+});
 
 
 
