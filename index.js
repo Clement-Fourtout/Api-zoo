@@ -357,13 +357,13 @@ app.get('/services', (req, res) => {
     console.log('Fichier reçu :', req.file);
 
     const { title, description } = req.body;
-    const image_url = req.file ? req.file.path : null;
+    const image_url = req.file.path ;
 
     // Ajoutez une vérification pour vous assurer que les données sont présentes
     if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
-
+    console.log('Chemin du fichier enregistré :', image_url);
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
         if (err) {
