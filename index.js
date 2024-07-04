@@ -13,6 +13,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -37,6 +38,10 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes HTTP autorisées
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
+const uploadDirectory = 'C:/API/uploads';
+if (!fs.existsSync(uploadDirectory)) {
+    fs.mkdirSync(uploadDirectory, { recursive: true });
+}
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
