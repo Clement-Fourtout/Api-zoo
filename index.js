@@ -345,31 +345,31 @@ app.get('/services', (req, res) => {
   });
 
 
-  const multer = require('multer');
-  const upload = multer({ dest: 'uploads/' });
+  const upload = multer({ storage: storage });
+  const router = express.Router();
+
+  // Route POST pour ajouter un service avec téléchargement de fichier
+  app.post('/services', (req, res) => {
+    console.log('Requête POST reçue vers /services');
+    console.log('Données reçues :', req.body);
   
-  app.post('/services', upload.single('image_url'), (req, res) => {
-      console.log('Requête POST reçue vers /services');
-      console.log('Données reçues :', req.body);
+    const { title, description, image_url } = req.body;
   
-      const { title, description } = req.body;
-      const image_url = req.file ? req.file.path : null;
+    // Ajoutez une vérification pour vous assurer que les données sont présentes
+    if (!title || !description || !image_url) {
+      return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
+    }
   
-      // Ajoutez une vérification pour vous assurer que les données sont présentes
-      if (!title || !description || !image_url) {
-          return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
+    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+    pool.query(query, [title, description, image_url], (err, result) => {
+      if (err) {
+        console.error('Erreur lors de l\'insertion du service :', err);
+        return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
       }
-  
-      const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-      pool.query(query, [title, description, image_url], (err, result) => {
-          if (err) {
-              console.error('Erreur lors de l\'insertion du service :', err);
-              return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
-          }
-          console.log('Service ajouté avec succès :', { title, description, image_url });
-          return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
-      });
-  });
+      console.log('Service ajouté avec succès :', { title, description, image_url });
+      return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
+    });
+  });;
 
   
   
