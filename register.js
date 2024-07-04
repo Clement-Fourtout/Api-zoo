@@ -10,7 +10,6 @@ const pool = new Pool({
 
 // Middleware pour parser le JSON
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Middleware de validation pour les données de création d'utilisateur
 const validateUser = [
   check('email').isEmail(),

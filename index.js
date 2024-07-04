@@ -13,6 +13,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const upload = multer({ storage: storage });
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -48,7 +49,7 @@ const storage = multer.diskStorage({
     }
   });
   
-const upload = multer({ storage: storage });
+
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
@@ -352,30 +353,27 @@ app.get('/services', (req, res) => {
  
   
   app.post('/services', upload.single('image_url'), (req, res) => {
-    console.log('Requête POST reçue vers /services');
-    console.log('Données reçues :', req.body);
-    console.log('Fichier reçu :', req.file); // Utilisation directe de req.file pour obtenir le fichier téléchargé
-
-    // Récupérez les données nécessaires depuis req.body et req.file
-    const { title, description } = req.body;
-    const { path: image_url } = req.file; // path est la propriété de req.file où Multer enregistre le chemin du fichier
-
-    // Vérifiez que title, description et image_url sont définis
-    if (!title || !description || !image_url) {
-        return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
+    // Vérifiez si le fichier a été correctement téléchargé et enregistré
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucun fichier n\'a été téléchargé.' });
     }
-
-    // Effectuez votre traitement de base de données avec les données récupérées
+  
+    // Traitez les autres données du formulaire (title, description, etc.)
+    const { title, description } = req.body;
+    const image_url = req.file.path;
+  
+    // Insérez les données dans votre base de données ou effectuez d'autres actions nécessaires
+    // Exemple avec une base de données MySQL
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
-        if (err) {
-            console.error('Erreur lors de l\'insertion du service :', err);
-            return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
-        }
-        console.log('Service ajouté avec succès :', { title, description, image_url });
-        return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
+      if (err) {
+        console.error('Erreur lors de l\'insertion du service :', err);
+        return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
+      }
+      console.log('Service ajouté avec succès :', { title, description, image_url });
+      return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
-});
+  });
 
 
 
