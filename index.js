@@ -364,7 +364,7 @@ app.get('/services', (req, res) => {
     const { path: image_url, buffer: imageData } = req.file; // Ensure you capture req.file.buffer
 
     // Vérifiez que title, description et image_url sont définis
-    if (!title || !description || !image_url) {
+    if (!title || !description || !imageData) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
 
@@ -379,21 +379,16 @@ app.get('/services', (req, res) => {
         const service = { id: result.insertId, title, description, image_url };
 
         // Write file to disk after inserting into database
-        if (imageData) { // Ensure imageData (req.file.buffer) is defined
-            fs.writeFile(__dirname + '/' + image_url, imageData, (err) => {
-                if (err) {
-                    console.error('Erreur lors de l\'écriture du fichier :', err);
-                    return res.status(500).json({ message: 'Erreur lors de l\'écriture du fichier' });
-                } else {
-                    console.log('Fichier écrit avec succès :', image_url);
-                    // Continue with other actions if necessary
-                    return res.status(200).json({ message: 'Service ajouté avec succès', service });
-                }
-            });
-        } else {
-            console.error('imageData n\'est pas défini.');
-            return res.status(400).json({ message: 'imageData n\'est pas défini.' });
-        }
+        fs.writeFile(__dirname + '/' + image_url, imageData, (err) => {
+            if (err) {
+                console.error('Erreur lors de l\'écriture du fichier :', err);
+                return res.status(500).json({ message: 'Erreur lors de l\'écriture du fichier' });
+            } else {
+                console.log('Fichier écrit avec succès :', image_url);
+                // Continue with other actions if necessary
+                return res.status(200).json({ message: 'Service ajouté avec succès', service });
+            }
+        });
     });
 });
 
