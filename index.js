@@ -38,6 +38,13 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
+fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
+    if (err) {
+        console.error("Erreur lors de l'enregistrement du fichier :", err);
+    } else {
+        console.log("Fichier enregistré avec succès :", service.image_url);
+    }
+});
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -355,7 +362,7 @@ app.get('/services', (req, res) => {
     console.log('Requête POST reçue vers /services');
     console.log('Données reçues :', req.body);
     console.log('Fichier reçu :', req.file);
-
+    console.log("Chemin complet de l'image :", __dirname + '/' + service.image_url);
     const { title, description } = req.body;
     const image_url = req.file.path ;
 
