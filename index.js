@@ -40,7 +40,7 @@ const corsOptions = {
 
 
 const storage = multer.diskStorage({
-    destination: './uploads',
+    destination: './uploads/',
     filename: function(req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname);
     }
@@ -358,24 +358,26 @@ app.get('/services', (req, res) => {
   app.post('/services', upload.single('image_url'), (req, res) => {
     console.log('Requête POST reçue vers /services');
     console.log('Données reçues :', req.body);
-    console.log('Fichier reçu :', req.file); // Utilisation directe de req.file pour obtenir le fichier téléchargé
+    console.log('Fichier reçu :', req.file);
 
-    // Récupérez les données nécessaires depuis req.body et req.file
-   const { title, description } = req.body;
-   const image_url = req.file.path; // path est la propriété de req.file où Multer enregistre le chemin du fichier
+    // Extraire les données du corps de la requête et du fichier téléchargé
+    const { title, description } = req.body;
+    const image_url = req.file.path;
 
-    // Vérifiez que title, description et image_url sont définis
+    // Vérifier que tous les champs nécessaires sont présents
     if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
 
-    // Effectuez votre traitement de base de données avec les données récupérées
+    // Insérer les données dans la base de données
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
         if (err) {
             console.error('Erreur lors de l\'insertion du service :', err);
             return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
         }
+
+        // Succès : envoyer une réponse avec les détails du service ajouté
         console.log('Service ajouté avec succès :', { title, description, image_url });
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
