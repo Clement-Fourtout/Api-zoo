@@ -52,7 +52,7 @@ const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
-
+app.use('/uploads', express.static('uploads'));
 let tasks = [
     { id: 1, title: 'Etat de santé :' },
     { id: 2, title: 'Nourriture :' },
