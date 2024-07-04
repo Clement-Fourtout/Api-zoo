@@ -229,7 +229,7 @@ app.post('/register', async (req, res) => {
                     console.error('Erreur lors de l\'envoi de l\'e-mail de confirmation :', error);
                 }
 
-                return res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, role } });
+                return res.status(201).json({ message: 'Utilisateur créé avec succès', user: { nom, role, mot_de_passe } });
             }
         });
     } catch (error) {
