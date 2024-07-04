@@ -38,13 +38,24 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
-fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
-    if (err) {
-        console.error("Erreur lors de l'enregistrement du fichier :", err);
-    } else {
-        console.log("Fichier enregistré avec succès :", service.image_url);
-    }
-});
+console.log('Contenu de service :', service);
+
+// Vérifiez que service.image_url est défini
+if (service && service.image_url) {
+    // Utilisation de fs.writeFile avec le chemin complet
+    fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
+        if (err) {
+            console.error('Erreur lors de l\'écriture du fichier :', err);
+            // Gérer l'erreur
+        } else {
+            console.log('Fichier écrit avec succès :', service.image_url);
+            // Faire d'autres actions si nécessaire
+        }
+    });
+} else {
+    console.error('service.image_url n\'est pas défini ou vide.');
+    // Gérer l'absence de service.image_url
+}
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
