@@ -375,27 +375,31 @@ app.get('/services', (req, res) => {
             console.error('Erreur lors de l\'insertion du service :', err);
             return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
         }
-        console.log('Service ajouté avec succès :', { title, description, image_url });
-        return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
-    });
-});
 
+        const service = { id: result.insertId, title, description, image_url };
 
-// Vérifiez que service.image_url est défini
-if (service && service.image_url) {
-    fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
-        if (err) {
-            console.error('Erreur lors de l\'écriture du fichier :', err);
-            // Gérer l'erreur
+        // Write file to disk after inserting into database
+        if (service && service.image_url) {
+            fs.
+   
+writeFile(__dirname + '/' + service.image_url, req.file.buffer, (err) => {
+                if (err) {
+                    console.error('Erreur lors de l\'écriture du fichier :', err);
+                    return res.status(500).json({ message: 'Erreur lors de l\'écriture du fichier' });
+                } else {
+                    console.log('Fichier écrit avec succès :', service.image_url);
+                    // Continue with other actions if necessary
+                    
+             
+return res.status(200).json({ message: 'Service ajouté avec succès', service });
+                }
+            });
         } else {
-            console.log('Fichier écrit avec succès :', service.image_url);
-            // Faire d'autres actions si nécessaire
+            console.error('service.image_url n\'est pas défini ou vide.');
+            return res.status(400).json({ message: 'service.image_url n\'est pas défini ou vide.' });
         }
     });
-} else {
-    console.error('service.image_url n\'est pas défini ou vide.');
-    // Gérer l'absence de service.image_url
-}
+});
 
 
   
