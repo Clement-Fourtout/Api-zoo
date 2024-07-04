@@ -1,12 +1,11 @@
 
 require('dotenv').config();
-
 const fs = require('fs');
 const express = require('express');
 const app = express();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2');
+const mysql = require('mysql');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
@@ -17,15 +16,8 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+const pool = mysql.createPool(process.env.JAWSDB_URL)
+
 pool.getConnection((err, connection) => {
     if (err) {
         console.error('Erreur de connexion à la base de données :', err);
