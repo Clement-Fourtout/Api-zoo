@@ -69,6 +69,7 @@ const storage = multer.diskStorage({
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 let tasks = [
     { id: 1, title: 'Etat de santé :' },
     { id: 2, title: 'Nourriture :' },
