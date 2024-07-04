@@ -11,6 +11,7 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 const path = require('path');
 const PORT = process.env.PORT || 3000;
 
@@ -38,16 +39,18 @@ const corsOptions = {
 };
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Répertoire de destination pour les fichiers téléchargés
-  },
-  filename: function (req, file, cb) {
-    // Générer un nom de fichier unique (par exemple, en ajoutant un timestamp)
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
 });
+const upload = multer({ storage: storage });
 
 app.use(cors(corsOptions));
+app.use(express.json()); // Pour parser le JSON des requêtes
 
 let tasks = [
     { id: 1, title: 'Etat de santé :' },
@@ -344,32 +347,32 @@ app.get('/services', (req, res) => {
   });
 
 
-  const multer = require('multer');
-  const upload = multer({ dest: 'uploads/' });
+
+ 
   
   app.post('/services', upload.single('image_url'), (req, res) => {
-      console.log('Requête POST reçue vers /services');
-      console.log('Données reçues :', req.body);
-      console.log('Fichier reçu :', req.file);
-  
-      const { title, description } = req.body;
-      const image_url = req.file ? req.file.path : null;
-  
-      // Ajoutez une vérification pour vous assurer que les données sont présentes
-      if (!title || !description || !image_url) {
-          return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
-      }
-  
-      const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-      pool.query(query, [title, description, image_url], (err, result) => {
-          if (err) {
-              console.error('Erreur lors de l\'insertion du service :', err);
-              return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
-          }
-          console.log('Service ajouté avec succès :', { title, description, image_url });
-          return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
-      });
-  });
+    console.log('Requête POST reçue vers /services');
+    console.log('Données reçues :', req.body);
+    console.log('Fichier reçu :', req.file);
+
+    const { title, description } = req.body;
+    const image_url = req.file ? req.file.path : null;
+
+    // Ajoutez une vérification pour vous assurer que les données sont présentes
+    if (!title || !description || !image_url) {
+        return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
+    }
+
+    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+    pool.query(query, [title, description, image_url], (err, result) => {
+        if (err) {
+            console.error('Erreur lors de l\'insertion du service :', err);
+            return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
+        }
+        console.log('Service ajouté avec succès :', { title, description, image_url });
+        return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
+    });
+});
   
 
   
