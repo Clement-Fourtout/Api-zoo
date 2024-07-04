@@ -39,24 +39,7 @@ const corsOptions = {
 };
 
 
-// Vérifiez que service.image_url est défini
-console.log('Contenu de service :', service);
 
-// Vérifiez que service.image_url est défini
-if (service && service.image_url) {
-    fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
-        if (err) {
-            console.error('Erreur lors de l\'écriture du fichier :', err);
-            // Gérer l'erreur
-        } else {
-            console.log('Fichier écrit avec succès :', service.image_url);
-            // Faire d'autres actions si nécessaire
-        }
-    });
-} else {
-    console.error('service.image_url n\'est pas défini ou vide.');
-    // Gérer l'absence de service.image_url
-}
 
 
 const storage = multer.diskStorage({
@@ -396,6 +379,25 @@ app.get('/services', (req, res) => {
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
 });
+
+// Vérifiez que service.image_url est défini
+console.log('Contenu de service :', service);
+
+// Vérifiez que service.image_url est défini
+if (service && service.image_url) {
+    fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
+        if (err) {
+            console.error('Erreur lors de l\'écriture du fichier :', err);
+            // Gérer l'erreur
+        } else {
+            console.log('Fichier écrit avec succès :', service.image_url);
+            // Faire d'autres actions si nécessaire
+        }
+    });
+} else {
+    console.error('service.image_url n\'est pas défini ou vide.');
+    // Gérer l'absence de service.image_url
+}
 
 
   
