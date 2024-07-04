@@ -363,7 +363,7 @@ app.get('/services', (req, res) => {
     const { title, description } = req.body;
     const { path: image_url, buffer: imageData } = req.file; // Ensure you capture req.file.buffer
 
-    // Vérifiez que title, description et image_url sont définis
+    // Vérifiez que title, description et imageData sont définis
     if (!title || !description || !imageData) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
@@ -391,6 +391,7 @@ app.get('/services', (req, res) => {
         });
     });
 });
+
 
 
   
