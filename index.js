@@ -347,7 +347,10 @@ app.get('/services', (req, res) => {
   });
 
 
-
+  app.post('/uploads', upload.single('file'), (req, res) => {
+    // Gérer la réponse ici, par exemple :
+    res.json({ message: 'Fichier téléchargé avec succès' });
+  });
  
   
   app.post('/services', upload.single('image_url'), (req, res) => {
