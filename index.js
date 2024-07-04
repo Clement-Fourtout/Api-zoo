@@ -1,7 +1,6 @@
 
 require('dotenv').config();
 
-
 const fs = require('fs');
 const express = require('express');
 const app = express();
@@ -33,7 +32,7 @@ AWS.config.update({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
   });
-  
+
 // Middleware pour parser le JSON
 app.use(express.json());
 
