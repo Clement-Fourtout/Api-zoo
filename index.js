@@ -26,8 +26,14 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
-
+pool.getConnection((err, connection) => {
+    if (err) {
+        console.error('Erreur de connexion à la base de données :', err);
+        return;
+    }
+    console.log('Connexion à la base de données MySQL réussie !');
+    connection.release();
+});
 
 // Middleware pour parser le JSON
 app.use(express.json());
