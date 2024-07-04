@@ -51,7 +51,7 @@ const storage = multer.diskStorage({
     }
   });
   
-  const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: storage });
 
 app.use(cors(corsOptions));
 app.use(express.json()); // Pour parser le JSON des requêtes
@@ -361,10 +361,10 @@ app.get('/services', (req, res) => {
 
     // Récupérez les données nécessaires depuis req.body et req.file
     const { title, description } = req.body;
-    const { path: image_url, buffer: imageData } = req.file; // Ensure you capture req.file.buffer
+    const { path: image_url } = req.file; // path est la propriété de req.file où Multer enregistre le chemin du fichier
 
-    // Vérifiez que title, description et imageData sont définis
-    if (!title || !description || !imageData) {
+    // Vérifiez que title, description et image_url sont définis
+    if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
 
@@ -375,22 +375,12 @@ app.get('/services', (req, res) => {
             console.error('Erreur lors de l\'insertion du service :', err);
             return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
         }
-
-        const service = { id: result.insertId, title, description, image_url };
-
-        // Write file to disk after inserting into database
-        fs.writeFile(__dirname + '/' + image_url, imageData, (err) => {
-            if (err) {
-                console.error('Erreur lors de l\'écriture du fichier :', err);
-                return res.status(500).json({ message: 'Erreur lors de l\'écriture du fichier' });
-            } else {
-                console.log('Fichier écrit avec succès :', image_url);
-                // Continue with other actions if necessary
-                return res.status(200).json({ message: 'Service ajouté avec succès', service });
-            }
-        });
+        console.log('Service ajouté avec succès :', { title, description, image_url });
+        return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
 });
+
+
 
 
 
