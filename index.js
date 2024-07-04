@@ -18,14 +18,13 @@ app.use(bodyParser.json());
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
-pool.getConnection((err, connection) => {
-    if (err) {
-        console.error('Erreur de connexion à la base de données :', err);
-        return;
+pool.query('SELECT * FROM services', (error, results, fields) => {
+    if (error) {
+      console.error('Erreur lors de la requête SQL :', error);
+      return;
     }
-    console.log('Connexion à la base de données MySQL réussie !');
-    connection.release();
-});
+    console.log('Résultats de la requête :', results);
+  });
 
 // Middleware pour parser le JSON
 app.use(express.json());
