@@ -51,7 +51,7 @@ const storage = multer.diskStorage({
     }
   });
   
-const upload = multer({ storage: storage });
+  const upload = multer({ dest: 'uploads/' });
 
 app.use(cors(corsOptions));
 app.use(express.json()); // Pour parser le JSON des requêtes
