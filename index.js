@@ -12,7 +12,6 @@ const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -345,7 +344,8 @@ app.get('/services', (req, res) => {
   });
 
 
-
+  const multer = require('multer');
+  const upload = multer({ dest: 'uploads/' });
   
   app.post('/services', upload.single('image_url'), (req, res) => {
       console.log('Requête POST reçue vers /services');
