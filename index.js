@@ -37,21 +37,17 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Méthodes HTTP autorisées
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
-const uploadDirectory = 'C:/API/uploads';
-if (!fs.existsSync(uploadDirectory)) {
-    fs.mkdirSync(uploadDirectory, { recursive: true });
-}
+
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'C:/API/uploads'); // Chemin où les fichiers seront enregistrés
+      cb(null, 'uploads/'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
     },
     filename: function(req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const extension = path.extname(file.originalname);
-        cb(null, uniqueSuffix + '-' + file.fieldname + extension); // Nom du fichier enregistré
+      cb(null, Date.now() + '-' + file.originalname); // Nom du fichier
     }
-});
+  });
+  
 const upload = multer({ storage: storage });
 
 app.use(cors(corsOptions));
