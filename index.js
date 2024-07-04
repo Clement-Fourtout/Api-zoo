@@ -13,7 +13,6 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const upload = multer({ storage: storage });
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
@@ -49,7 +48,7 @@ const storage = multer.diskStorage({
     }
   });
   
-
+const upload = multer({ storage: storage });
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
