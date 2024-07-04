@@ -380,8 +380,6 @@ app.get('/services', (req, res) => {
     });
 });
 
-// Vérifiez que service.image_url est défini
-console.log('Contenu de service :', service);
 
 // Vérifiez que service.image_url est défini
 if (service && service.image_url) {
