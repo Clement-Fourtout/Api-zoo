@@ -38,11 +38,12 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
+
+// Vérifiez que service.image_url est défini
 console.log('Contenu de service :', service);
 
 // Vérifiez que service.image_url est défini
 if (service && service.image_url) {
-    // Utilisation de fs.writeFile avec le chemin complet
     fs.writeFile(__dirname + '/' + service.image_url, imageData, (err) => {
         if (err) {
             console.error('Erreur lors de l\'écriture du fichier :', err);
@@ -56,6 +57,7 @@ if (service && service.image_url) {
     console.error('service.image_url n\'est pas défini ou vide.');
     // Gérer l'absence de service.image_url
 }
+
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -372,16 +374,18 @@ app.get('/services', (req, res) => {
   app.post('/services', upload.single('image_url'), (req, res) => {
     console.log('Requête POST reçue vers /services');
     console.log('Données reçues :', req.body);
-    console.log('Fichier reçu :', req.file);
-    console.log("Chemin complet de l'image :", __dirname + '/' + service.image_url);
-    const { title, description } = req.body;
-    const image_url = req.file.path ;
+    console.log('Fichier reçu :', req.file); // Utilisation directe de req.file pour obtenir le fichier téléchargé
 
-    // Ajoutez une vérification pour vous assurer que les données sont présentes
+    // Récupérez les données nécessaires depuis req.body et req.file
+    const { title, description } = req.body;
+    const { path: image_url } = req.file; // path est la propriété de req.file où Multer enregistre le chemin du fichier
+
+    // Vérifiez que title, description et image_url sont définis
     if (!title || !description || !image_url) {
         return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
     }
-    console.log('Chemin du fichier enregistré :', image_url);
+
+    // Effectuez votre traitement de base de données avec les données récupérées
     const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
     pool.query(query, [title, description, image_url], (err, result) => {
         if (err) {
@@ -392,7 +396,7 @@ app.get('/services', (req, res) => {
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
 });
-  
+
 
   
   
