@@ -39,12 +39,13 @@ const corsOptions = {
 };
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+    destination: function(req, file, cb) {
+        cb(null, 'C:/API/uploads'); // Chemin où les fichiers seront enregistrés
     },
-    filename: (req, file, cb) => {
+    filename: function(req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname);
+        const extension = path.extname(file.originalname);
+        cb(null, uniqueSuffix + '-' + file.fieldname + extension); // Nom du fichier enregistré
     }
 });
 const upload = multer({ storage: storage });
