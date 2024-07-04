@@ -40,25 +40,14 @@ const corsOptions = {
 
 
 const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-      cb(null, './uploads'); // Spécifie le répertoire 'uploads/' pour enregistrer les fichiers
-    },
+    destination: './uploads',
     filename: function(req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname); // Nom du fichier
+      cb(null, Date.now() + '-' + file.originalname);
     }
   });
   
-  const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-      // Vérification du type de fichier si nécessaire
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Ce type de fichier n\'est pas pris en charge'), false);
-      }
-    }
-  });
+  const upload = multer({ storage: storage });
+
   app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
       res.status(400).send({ error: 'Une erreur s\'est produite lors du téléchargement du fichier.' });
@@ -372,8 +361,8 @@ app.get('/services', (req, res) => {
     console.log('Fichier reçu :', req.file); // Utilisation directe de req.file pour obtenir le fichier téléchargé
 
     // Récupérez les données nécessaires depuis req.body et req.file
-    const { title, description } = req.body;
-    const { path: image_url } = req.file; // path est la propriété de req.file où Multer enregistre le chemin du fichier
+   const { title, description } = req.body;
+   const image_url = req.file.path; // path est la propriété de req.file où Multer enregistre le chemin du fichier
 
     // Vérifiez que title, description et image_url sont définis
     if (!title || !description || !image_url) {
@@ -390,7 +379,9 @@ app.get('/services', (req, res) => {
         console.log('Service ajouté avec succès :', { title, description, image_url });
         return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
     });
+    res.json({ title, description, image_url });
 });
+
 
 
 
