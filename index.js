@@ -358,7 +358,7 @@ app.get('/services', (req, res) => {
 
 
   
-  app.post('/services', upload.single('image'), async (req, res) => {
+  app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
     const imageUrl = req.file.location;
 
