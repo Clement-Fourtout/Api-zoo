@@ -358,14 +358,22 @@ app.get('/services', (req, res) => {
 
 
   
-  app.post('/services', upload.single('image_url'), async (req, res) => {
+  app.post('/services', upload.single('image'), async (req, res) => {
     const { title, description } = req.body;
     const imageUrl = req.file.location;
 
-    // Ici vous pouvez traiter les données comme enregistrer dans la base de données, etc.
-    // Exemple simple de réponse JSON pour confirmation
-    res.json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
+    // Insérer les données dans la base de données
+    try {
+        const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+        await pool.query(query, [title, description, imageUrl]);
+
+        res.status(201).json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
+    } catch (error) {
+        console.error('Erreur lors de l\'insertion du service :', error);
+        res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
+    }
 });
+
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
