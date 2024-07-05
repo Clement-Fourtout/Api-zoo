@@ -45,7 +45,7 @@ const uploadFile = (fileName, fileContent) => {
     return s3.upload(params).promise();
 };
 
-uploadFile('example.jpg', fs.readFileSync('./path/to/your/image.jpg'))
+uploadFile('example.jpg', fs.readFileSync('./uploads'))
     .then(data => {
         console.log(`File uploaded successfully. ${data.Location}`);
     })
