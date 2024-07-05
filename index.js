@@ -58,17 +58,10 @@ AWS.config.update({
     }),
   });
 
-  app.use((err, req, res, next) => {
-    if (err instanceof multer.MulterError) {
-      res.status(400).send({ error: 'Une erreur s\'est produite lors du téléchargement du fichier.' });
-    } else {
-      res.status(500).send({ error: err.message });
-    }
-  });
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 let tasks = [
     { id: 1, title: 'Etat de santé :' },
     { id: 2, title: 'Nourriture :' },
@@ -367,11 +360,25 @@ app.get('/services', (req, res) => {
   
   app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
-    const imageUrl = req.file.location;
+    const imageUrl = req.file.location; // L'URL de l'image sur S3
 
-    res.json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
+    // Enregistrer les données dans la base de données
+    try {
+        const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
+        pool.query(query, [title, description, imageUrl], (err, result) => {
+            if (err) {
+                console.error('Erreur lors de l\'enregistrement du service :', err);
+                return res.status(500).json({ message: 'Erreur lors de la création du service' });
+            } else {
+                console.log('Service enregistré avec succès :', { title, description, imageUrl });
+                return res.status(201).json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de l\'enregistrement du service :', error);
+        return res.status(500).json({ message: 'Erreur lors de la création du service' });
+    }
 });
-
   
   
   // Mettre à jour un service existant
