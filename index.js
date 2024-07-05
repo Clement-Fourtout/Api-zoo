@@ -1,6 +1,7 @@
 
 require('dotenv').config();
 
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const fs = require('fs');
@@ -39,24 +40,34 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
-AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+const s3Client = new S3Client({
     region: process.env.AWS_REGION,
-  });
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+    }
+});
   
-  const s3 = new AWS.S3();
-  
-  const upload = multer({
-    storage: multerS3({
-      s3: s3,
-      bucket: process.env.AWS_S3_BUCKET,
-      acl: 'public-read',
-      key: function (req, file, cb) {
-        cb(null, Date.now().toString() + '-' + file.originalname);
-      },
-    }),
-  });
+const uploadToS3 = async (file) => {
+    const fileContent = fs.readFileSync(file.path);
+
+    const params = {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: file.filename,
+        Body: fileContent,
+        ContentType: file.mimetype,
+        ACL: 'public-read'
+    };
+
+    try {
+        const data = await s3Client.send(new PutObjectCommand(params));
+        console.log('File uploaded successfully:', data);
+        return data;
+    } catch (err) {
+        console.error('Error uploading file:', err);
+        throw err;
+    }
+};
 
 
 app.use(cors());
@@ -358,12 +369,14 @@ app.get('/services', (req, res) => {
 
 
   
-  app.post('/services', upload.single('image_url'), async (req, res) => {
-    const { title, description } = req.body;
-    const imageUrl = req.file.location; // L'URL de l'image sur S3
-
-    // Enregistrer les données dans la base de données
+  app.post('/services', upload.single('image'), async (req, res) => {
     try {
+        const uploadedFile = await uploadToS3(req.file);
+
+        const { title, description } = req.body;
+        const imageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.amazonaws.com/${req.file.filename}`;
+
+        // Enregistrement des données dans la base de données
         const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
         pool.query(query, [title, description, imageUrl], (err, result) => {
             if (err) {
@@ -375,7 +388,7 @@ app.get('/services', (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Erreur lors de l\'enregistrement du service :', error);
+        console.error('Erreur lors de l\'envoi de l\'image vers S3 :', error);
         return res.status(500).json({ message: 'Erreur lors de la création du service' });
     }
 });
