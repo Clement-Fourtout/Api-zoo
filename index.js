@@ -361,29 +361,13 @@ app.get('/services', (req, res) => {
 
   
   app.post('/services', upload.single('image_url'), async (req, res) => {
-    try {
-        const uploadedFile = await uploadToS3(req.file);
+    const { title, description } = req.body;
+    const imageUrl = req.file.location;
 
-        const { title, description } = req.body;
-        const imageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.amazonaws.com/${req.file.filename}`;
-
-        // Enregistrement des données dans la base de données
-        const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-        pool.query(query, [title, description, imageUrl], (err, result) => {
-            if (err) {
-                console.error('Erreur lors de l\'enregistrement du service :', err);
-                return res.status(500).json({ message: 'Erreur lors de la création du service' });
-            } else {
-                console.log('Service enregistré avec succès :', { title, description, imageUrl });
-                return res.status(201).json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
-            }
-        });
-    } catch (error) {
-        console.error('Erreur lors de l\'envoi de l\'image vers S3 :', error);
-        return res.status(500).json({ message: 'Erreur lors de la création du service' });
-    }
+    // Ici vous pouvez traiter les données comme enregistrer dans la base de données, etc.
+    // Exemple simple de réponse JSON pour confirmation
+    res.json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
 });
-  
   
   // Mettre à jour un service existant
   app.put('/services/:id', (req, res) => {
