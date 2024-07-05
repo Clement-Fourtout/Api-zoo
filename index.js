@@ -1,7 +1,6 @@
 
 require('dotenv').config();
 
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const fs = require('fs');
