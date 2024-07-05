@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const AWS = require('aws-sdk');
+const multerS3 = require('multer-s3');
 const fs = require('fs');
 const express = require('express');
 const app = express();
@@ -28,30 +29,6 @@ pool.query('SELECT * FROM services', (error, results, fields) => {
     console.log('Résultats de la requête :', results);
   });
 
-  const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
-});
-
-const uploadFile = (fileName, fileContent) => {
-    const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: fileName,
-        Body: fileContent,
-        ContentType: 'image/jpeg' // ou autre type de fichier
-    };
-
-    return s3.upload(params).promise();
-};
-
-uploadFile('example.jpg', fs.readFileSync('./uploads'))
-    .then(data => {
-        console.log(`File uploaded successfully. ${data.Location}`);
-    })
-    .catch(err => {
-        console.error('Error uploading file:', err);
-    });
 // Middleware pour parser le JSON
 app.use(express.json());
 
@@ -63,14 +40,7 @@ const corsOptions = {
 };
 
 
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function(req, file, cb) {
-      cb(null, Date.now() + '-' + file.originalname);
-    }
-  });
-  
-  const upload = multer({ storage: storage });
+
 
   app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
