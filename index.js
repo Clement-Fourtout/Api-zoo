@@ -39,8 +39,24 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
-
-
+AWS.config.update({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+  });
+  
+  const s3 = new AWS.S3();
+  
+  const upload = multer({
+    storage: multerS3({
+      s3: s3,
+      bucket: process.env.AWS_S3_BUCKET,
+      acl: 'public-read',
+      key: function (req, file, cb) {
+        cb(null, Date.now().toString() + '-' + file.originalname);
+      },
+    }),
+  });
 
   app.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {
@@ -349,35 +365,12 @@ app.get('/services', (req, res) => {
 
 
   
-  app.post('/services', upload.single('image_url'), (req, res) => {
-    console.log('Requête POST reçue vers /services');
-    console.log('Données reçues :', req.body);
-    console.log('Fichier reçu :', req.file);
-
-    // Extraire les données du corps de la requête et du fichier téléchargé
+  app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
-    const image_url = req.file.path;
+    const imageUrl = req.file.location;
 
-    // Vérifier que tous les champs nécessaires sont présents
-    if (!title || !description || !image_url) {
-        return res.status(400).json({ message: 'Les champs title, description et image_url sont requis.' });
-    }
-
-    // Insérer les données dans la base de données
-    const query = 'INSERT INTO services (title, description, image_url) VALUES (?, ?, ?)';
-    pool.query(query, [title, description, image_url], (err, result) => {
-        if (err) {
-            console.error('Erreur lors de l\'insertion du service :', err);
-            return res.status(500).json({ message: 'Erreur lors de l\'insertion du service' });
-        }
-
-        // Succès : envoyer une réponse avec les détails du service ajouté
-        console.log('Service ajouté avec succès :', { title, description, image_url });
-        return res.status(200).json({ message: 'Service ajouté avec succès', service: { id: result.insertId, title, description, image_url } });
-    });
+    res.json({ message: 'Service ajouté avec succès', service: { title, description, imageUrl } });
 });
-
-
 
   
   
