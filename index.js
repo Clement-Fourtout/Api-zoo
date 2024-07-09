@@ -358,7 +358,7 @@ app.get('/services', (req, res) => {
             const servicesWithImageUrl = results.map(service => {
                 return {
                     ...service,
-                    image_url: `https://image-zoo-de-broceliande.s3.eu-west-3.amazonaws.com/${service.image_url}`
+                    image_url: `${service.image_url}`
                 };
             });
             res.json(servicesWithImageUrl);
