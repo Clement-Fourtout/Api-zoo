@@ -407,7 +407,7 @@ app.delete('/services/:id', async (req, res) => {
     try {
         // Récupérer l'URL de l'image depuis la base de données
         const querySelect = 'SELECT image_url FROM services WHERE id = ?';
-        const [rows, fields] = await pool.query(querySelect, [id]);
+        const [rows] = await pool.query(querySelect, [id]);
 
         // Vérifier si aucune entrée n'est trouvée
         if (rows.length === 0) {
@@ -441,8 +441,12 @@ async function deleteImageFromS3(imageUrl) {
         Key: key
     };
 
-    await s3.deleteObject(params).promise();
-    console.log(`Image ${key} supprimée de S3 avec succès`);
+    try {
+        await s3.deleteObject(params).promise();
+        console.log(`Image ${key} supprimée de S3 avec succès`);
+    } catch (error) {
+        throw new Error(`Erreur lors de la suppression de l'image de S3 : ${error.message}`);
+    }
 }
 
 
