@@ -400,20 +400,52 @@ app.get('/services', (req, res) => {
     }
   });
   
-  
+  async function deleteImageFromS3(imageUrl) {
+    try {
+        const key = imageUrl.split('/').pop(); // Récupère le nom du fichier depuis l'URL
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key,
+        };
+
+        await s3.deleteObject(params).promise();
+        console.log(`Image ${key} supprimée avec succès de S3`);
+    } catch (err) {
+        console.error(`Erreur lors de la suppression de l'image depuis S3 : ${err.message}`);
+        throw err;
+    }
+}
   // Supprimer un service
-  app.delete('/services/:id', (req, res) => {
+  app.delete('/services/:id', async (req, res) => {
     const { id } = req.params;
-    const query = 'DELETE FROM services WHERE id = ?';
-    pool.query(query, [id], (err, result) => {
-      if (err) {
-        console.error('Erreur lors de la suppression du service :', err);
-        return res.status(500).json({ message: 'Erreur lors de la suppression du service' });
-      }
-      console.log('Service supprimé avec succès :', result);
-      return res.status(200).json({ message: 'Service supprimé avec succès' });
-    });
-  });
+
+    try {
+        // Récupérer l'image URL depuis la base de données
+        
+    
+const querySelect = 'SELECT image_url FROM services WHERE id = ?';
+        const [rows] = await pool.query(querySelect, [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Service non trouvé' });
+        }
+        
+        const imageUrl = rows[0].image_url;
+
+        // Supprimer l'image depuis S3
+        await deleteImageFromS3(imageUrl);
+
+        // Supprimer le service depuis la base de données
+        const queryDelete = 'DELETE FROM services WHERE id = ?';
+        await pool.query(queryDelete, [id]);
+
+        console.log(`Service avec l'ID ${id} supprimé avec succès`);
+
+        res.status(200).json({ message: 'Service et image supprimés avec succès' });
+    } catch (error) {
+        console.error(`Erreur lors de la suppression du service : ${error.message}`);
+        res.status(500).json({ message: 'Erreur lors de la suppression du service' });
+    }
+});
 
 
 
