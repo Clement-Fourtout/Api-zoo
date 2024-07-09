@@ -351,20 +351,17 @@ app.get('/avis_valides', (req, res) => {
 app.get('/services', (req, res) => {
     pool.query('SELECT * FROM services', (err, results) => {
         if (err) {
-            
-     
-console.error('Erreur lors de la récupération des services :', err);
+            console.error('Erreur lors de la récupération des services :', err);
             res.status(500).json({ error: 'Erreur serveur lors de la récupération des services' });
         } else {
-            // Modifier chaque résultat pour inclure l'URL complète de l'image
-            const servicesWithImageUrl = results.map(service => {
+            // Modifier chaque résultat pour inclure l'URL correcte de l'image
+            const servicesWithCorrectImageUrl = results.map(service => {
                 return {
                     ...service,
-                    
-image_url: `https://votre-bucket-s3.s3.amazonaws.com/${service.image_url}`
+                    image_url: service.image_url // Assurez-vous que service.image_url est correctement formé
                 };
             });
-            res.json(servicesWithImageUrl);
+            res.json(servicesWithCorrectImageUrl);
         }
     });
 });
