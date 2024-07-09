@@ -41,7 +41,8 @@ const corsOptions = {
 
 AWS.config.update({
     region: process.env.AWS_REGION,
-
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
 
 const s3 = new AWS.S3();
@@ -58,12 +59,6 @@ const upload = multer({
     })
 });
 
-const ec2 = new AWS.EC2();
-
-ec2.describeInstances(params, (err, data) => {
-    if (err) console.log(err, err.stack);
-    else console.log(data);
-});
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
