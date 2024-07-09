@@ -351,23 +351,21 @@ app.get('/avis_valides', (req, res) => {
 app.get('/services', (req, res) => {
     pool.query('SELECT * FROM services', (err, results) => {
         if (err) {
-            
-     
-console.error('Erreur lors de la récupération des services :', err);
+            console.error('Erreur lors de la récupération des services :', err);
             res.status(500).json({ error: 'Erreur serveur lors de la récupération des services' });
         } else {
             // Modifier chaque résultat pour inclure l'URL complète de l'image
             const servicesWithImageUrl = results.map(service => {
                 return {
                     ...service,
-                    
-image_url: `https://image-zoo-de-broceliande.s3.eu-west-3.amazonaws.com/${service.image_url}`
+                    image_url: `https://image-zoo-de-broceliande.s3.eu-west-3.amazonaws.com/${service.image_url}`
                 };
             });
             res.json(servicesWithImageUrl);
         }
     });
 });
+
 
 
   
