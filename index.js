@@ -419,18 +419,16 @@ app.get('/services', (req, res) => {
   app.delete('/services/:id', async (req, res) => {
     const { id } = req.params;
 
-    
-
-  
-try {
+    try {
         // Récupérer l'image URL depuis la base de données
         const querySelect = 'SELECT image_url FROM services WHERE id = ?';
         const [rows] = await pool.query(querySelect, [id]);
 
+        // Vérifier si aucune entrée n'est trouvée
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Service non trouvé' });
         }
-        
+
         const imageUrl = rows[0].image_url;
 
         // Supprimer l'image depuis S3
@@ -438,7 +436,7 @@ try {
 
         // Supprimer le service depuis la base de données
         const queryDelete = 'DELETE FROM services WHERE id = ?';
-        await pool.query(queryDelete, [id]);
+        const [result] = await pool.query(queryDelete, [id]);
 
         console.log(`Service avec l'ID ${id} supprimé avec succès`);
 
@@ -448,6 +446,7 @@ try {
         res.status(500).json({ message: 'Erreur lors de la suppression du service' });
     }
 });
+
 
 
 
