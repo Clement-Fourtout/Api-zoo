@@ -60,6 +60,10 @@ const upload = multer({
 
 app.use(cors());
 app.use(express.json()); // Pour parser le JSON des requêtes
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
 let tasks = [
     { id: 1, title: 'Etat de santé :' },
@@ -421,25 +425,39 @@ app.delete('/services/:id', async (req, res) => {
     try {
         // Récupérer l'URL de l'image depuis la base de données
         const querySelect = 'SELECT image_url FROM services WHERE id = ?';
-        const [rows, fields] = await pool.promise().query(querySelect, [id]);
+        pool.query(querySelect, [id], (err, rows, fields) => {
+            if (err) {
+                console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
+                throw err;
+            }
 
-        // Vérifier si aucune entrée n'est trouvée
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'Service non trouvé' });
-        }
+            // Vérifier si aucune entrée n'est trouvée
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Service non trouvé' });
+            }
 
-        const imageUrl = rows[0].image_url;
+            const imageUrl = rows[0].image_url;
 
-        // Supprimer l'image depuis S3
-        await deleteImageFromS3(imageUrl);
+            // Supprimer l'image depuis S3
+            deleteImageFromS3(imageUrl)
+                .then(() => {
+                    // Supprimer le service depuis la base de données
+                    const queryDelete = 'DELETE FROM services WHERE id = ?';
+                    pool.query(queryDelete, [id], (err, result) => {
+                        if (err) {
+                            console.error(`Erreur lors de la suppression du service : ${err.message}`);
+                            throw err;
+                        }
 
-        // Supprimer le service depuis la base de données
-        const queryDelete = 'DELETE FROM services WHERE id = ?';
-        const [result] = await pool.promise().query(queryDelete, [id]);
-
-        console.log(`Service avec l'ID ${id} supprimé avec succès`);
-
-        res.status(200).json({ message: 'Service et image supprimés avec succès' });
+                        console.log(`Service avec l'ID ${id} supprimé avec succès`);
+                        res.status(200).json({ message: 'Service et image supprimés avec succès' });
+                    });
+                })
+                .catch(error => {
+                    console.error(`Erreur lors de la suppression du service : ${error.message}`);
+                    res.status(500).json({ message: 'Erreur lors de la suppression du service' });
+                });
+        });
     } catch (error) {
         console.error(`Erreur lors de la suppression du service : ${error.message}`);
         res.status(500).json({ message: 'Erreur lors de la suppression du service' });
@@ -447,8 +465,8 @@ app.delete('/services/:id', async (req, res) => {
 });
 
 // Fonction pour supprimer une image de S3
-async function deleteImageFromS3(imageUrl) {
-    try {
+function deleteImageFromS3(imageUrl) {
+    return new Promise((resolve, reject) => {
         const key = imageUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
 
         const params = {
@@ -456,11 +474,18 @@ async function deleteImageFromS3(imageUrl) {
             Key: key
         };
 
-        await s3.deleteObject(params).promise();
-        console.log(`Image ${key} supprimée de S3 avec succès`);
-    } catch (error) {
-        throw new Error(`Erreur lors de la suppression de l'image de S3 : ${error.message}`);
-    }
+        s3.deleteObject(params, (err, data) => {
+            if (err) {
+                console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
+                reject(err);
+            } else {
+                
+           
+console.log(`Image ${key} supprimée de S3 avec succès`);
+                resolve();
+            }
+        });
+    });
 }
 
 
