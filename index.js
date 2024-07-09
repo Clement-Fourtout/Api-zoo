@@ -425,7 +425,7 @@ app.delete('/services/:id', async (req, res) => {
     try {
         // Récupérer l'URL de l'image depuis la base de données
         const querySelect = 'SELECT image_url FROM services WHERE id = ?';
-        pool.query(querySelect, [id], (err, rows, fields) => {
+        pool.query(querySelect, [id], async (err, rows, fields) => {
             if (err) {
                 console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
                 throw err;
@@ -439,35 +439,35 @@ app.delete('/services/:id', async (req, res) => {
             const imageUrl = rows[0].image_url;
 
             // Supprimer l'image depuis S3
-            deleteImageFromS3(imageUrl)
-                .then(() => {
-                    // Supprimer le service depuis la base de données
-                    const queryDelete = 'DELETE FROM services WHERE id = ?';
-                    pool.query(queryDelete, [id], (err, result) => {
-                        if (err) {
-                            console.error(`Erreur lors de la suppression du service : ${err.message}`);
-                            throw err;
-                        }
+            try {
+                await deleteImageFromS3(imageUrl);
 
-                        console.log(`Service avec l'ID ${id} supprimé avec succès`);
-                        res.status(200).json({ message: 'Service et image supprimés avec succès' });
-                    });
-                })
-                .catch(error => {
-                    console.error(`Erreur lors de la suppression du service : ${error.message}`);
-                    res.status(500).json({ message: 'Erreur lors de la suppression du service' });
+                // Supprimer le service depuis la base de données
+                const queryDelete = 'DELETE FROM services WHERE id = ?';
+                pool.query(queryDelete, [id], (err, result) => {
+                    if (err) {
+                        console.error(`Erreur lors de la suppression du service : ${err.message}`);
+                        throw err;
+                    }
+
+                    console.log(`Service avec l'ID ${id} supprimé avec succès`);
+                    res.status(200).json({ message: 'Service et image supprimés avec succès' });
                 });
+            } catch (error) {
+                console.error(`Erreur lors de la suppression du service : ${error.message}`);
+                res.status(500).json({ message: 'Erreur lors de la suppression du service' });
+            }
         });
     } catch (error) {
         console.error(`Erreur lors de la suppression du service : ${error.message}`);
         res.status(500).json({ message: 'Erreur lors de la suppression du service' });
     }
 });
-
 // Fonction pour supprimer une image de S3
 function deleteImageFromS3(imageUrl) {
     return new Promise((resolve, reject) => {
-        const key = imageUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
+        const decodedUrl = decodeURIComponent(imageUrl); // Décoder l'URL si nécessaire
+        const key = decodedUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
 
         const params = {
             Bucket: process.env.AWS_S3_BUCKET,
@@ -479,9 +479,7 @@ function deleteImageFromS3(imageUrl) {
                 console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
                 reject(err);
             } else {
-                
-           
-console.log(`Image ${key} supprimée de S3 avec succès`);
+                console.log(`Image ${key} supprimée de S3 avec succès`);
                 resolve();
             }
         });
