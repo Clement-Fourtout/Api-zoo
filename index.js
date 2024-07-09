@@ -419,12 +419,14 @@ app.get('/services', (req, res) => {
   app.delete('/services/:id', async (req, res) => {
     const { id } = req.params;
 
-    try {
-        // Récupérer l'image URL depuis la base de données
-        
     
-const querySelect = 'SELECT image_url FROM services WHERE id = ?';
+
+  
+try {
+        // Récupérer l'image URL depuis la base de données
+        const querySelect = 'SELECT image_url FROM services WHERE id = ?';
         const [rows] = await pool.query(querySelect, [id]);
+
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Service non trouvé' });
         }
