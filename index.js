@@ -40,23 +40,22 @@ const corsOptions = {
 };
 
 AWS.config.update({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     region: process.env.AWS_REGION,
 });
 
 const s3 = new AWS.S3();
-  
+
+// Configuration de multer pour utiliser S3
 const upload = multer({
     storage: multerS3({
         s3: s3,
         bucket: process.env.AWS_S3_BUCKET,
+        acl: 'private', // ou 'public-read' selon vos besoins
         key: function (req, file, cb) {
-            cb(null, Date.now().toString() + '-' + file.originalname);
-        },
-    }),
+            cb(null, file.originalname);
+        }
+    })
 });
-
 
 
 app.use(cors());
