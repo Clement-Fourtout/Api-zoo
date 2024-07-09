@@ -358,13 +358,15 @@ app.get('/services', (req, res) => {
             const servicesWithImageUrl = results.map(service => {
                 return {
                     ...service,
-                    image_url: `${service.image_url}`
+                    image_url: `https://image-zoo-de-broceliande.s3.eu-west-3.amazonaws.com/${service.image_url}`
+                    // Remplacez "https://image-zoo-de-broceliande.s3.eu-west-3.amazonaws.com/" par l'URL de votre bucket S3
                 };
             });
             res.json(servicesWithImageUrl);
         }
     });
 });
+
 
 
 
