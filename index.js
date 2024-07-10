@@ -14,9 +14,18 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
 const PORT = process.env.PORT || 3000;
 
+
+// Middleware pour parser le JSON
+app.use(express.json());
 app.use(bodyParser.json());
+app.use(cors());
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
@@ -29,8 +38,6 @@ pool.query('SELECT * FROM services', (error, results, fields) => {
     console.log('Résultats de la requête :', results);
   });
 
-// Middleware pour parser le JSON
-app.use(express.json());
 
 const corsOptions = {
     origin: 'https://zoo-arcadia-31989dc8c54b.herokuapp.com',
@@ -39,13 +46,13 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'], // En-têtes autorisés
 };
 
+
 const s3 = new AWS.S3({
     region: process.env.AWS_REGION,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
 });
-
-  
+ 
 const upload = multer({
     storage: multerS3({
         s3: s3,
@@ -57,56 +64,12 @@ const upload = multer({
 });
 
 
+const mongoURI = process.env.MONGODB_URI
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.error('Error connecting to MongoDB:', err));
 
-app.use(cors());
-app.use(express.json()); // Pour parser le JSON des requêtes
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
 
-let tasks = [
-    { id: 1, title: 'Etat de santé :' },
-    { id: 2, title: 'Nourriture :' },
-    { id: 3, title: 'Grammage :' },
-    { id: 4, title: 'Date de passage :' },
-];
-
-// Récupérer toutes les tâches
-app.get('/tasks', (req, res) => {
-    res.json(tasks);
-});
-
-// Récupérer une tâche par son ID
-app.get('/tasks/:id', (req, res) => {
-    const taskId = parseInt(req.params.id);
-    const task = tasks.find(task => task.id === taskId);
-    if (task) {
-        res.json(task);
-    } else {
-        res.status(404).json({ message: 'Tâche non trouvée' });
-    }
-});
-
-// Ajouter une nouvelle tâche
-app.post('/tasks', (req, res) => {
-    const { title } = req.body;
-    const newTask = { id: tasks.length + 1, title };
-    tasks.push(newTask);
-    res.status(201).json(newTask);
-});
-
-// Mettre à jour une tâche existante
-app.put('/tasks/:id', (req, res) => {
-    const taskId = parseInt(req.params.id);
-    const task = tasks.find(task => task.id === taskId);
-    if (task) {
-        task.title = req.body.title;
-        res.json(task);
-    } else {
-        res.status(404).json({ message: 'Tâche non trouvée' });
-    }
-});
 
 // Supprimer une tâche
 app.delete('/users/:userId', (req, res) => {
@@ -366,11 +329,7 @@ app.get('/services', (req, res) => {
     });
 });
 
-
-
-
-
-  
+  // Ajout d'un service
   app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
     const imageUrl = req.file.location;
@@ -414,6 +373,7 @@ app.get('/services', (req, res) => {
     }
   });
   
+  // Suppression d'un service + Image sur Bucket S3
   async function deleteImageFromS3(imageUrl) {
     try {
         const key = imageUrl.split('/').pop(); // Récupère le nom du fichier depuis l'URL
@@ -496,6 +456,47 @@ function deleteImageFromS3(imageUrl) {
     });
 }
 
+const animalViewSchema = new mongoose.Schema({
+    animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal' },
+    viewCount: { type: Number, default: 0 }
+});
+
+app.post('/animals', (req, res) => {
+    const { name, species, age, habitat_id } = req.body;
+    pool.query('INSERT INTO Animals (name, species, age, habitat_id) VALUES (?, ?, ?, ?)', [name, species, age, habitat_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'animal' });
+        }
+        res.status(201).json({ message: 'Animal ajouté avec succès', id: results.insertId });
+    });
+});
+
+// Récupérer les détails d'un animal
+app.get('/animals/:id', (req, res) => {
+    const { id } = req.params;
+    pool.query('SELECT * FROM Animals WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Animal non trouvé' });
+        }
+        res.json(results[0]);
+    });
+});
+
+// Incrémenter le compteur de consultations d'un animal
+app.post('/animals/:id/view', async (req, res) => {
+    const { id } = req.params;
+    const animalView = await AnimalView.findOne({ animalId: id });
+    if (animalView) {
+        animalView.viewCount += 1;
+        await animalView.save();
+    } else {
+        await AnimalView.create({ animalId: id, viewCount: 1 });
+    }
+    res.status(200).json({ message: 'Consultation enregistrée' });
+});
 
 
 app.listen(PORT, () => {
