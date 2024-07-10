@@ -518,6 +518,50 @@ router.get('/Habitats', (req, res) => {
     });
   });
 
+// Créer un nouvel habitat
+router.post('/habitats', (req, res) => {
+    const { name, image, description, buttonColor, footerText, link, cardBorderColor } = req.body;
+    const sql = 'INSERT INTO habitats (name, image, description, buttonColor, footerText, link, cardBorderColor) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [name, image, description, buttonColor, footerText, link, cardBorderColor], (err, result) => {
+      if (err) {
+        console.error('Error creating habitat:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      res.status(201).send('Habitat created successfully');
+    });
+  });
+
+// Mettre à jour un habitat
+router.put('/habitats/:id', (req, res) => {
+    const habitatId = req.params.id;
+    const { name, image, description, buttonColor, footerText, link, cardBorderColor } = req.body;
+    const sql = 'UPDATE habitats SET name=?, image=?, description=?, buttonColor=?, footerText=?, link=?, cardBorderColor=? WHERE id=?';
+    db.query(sql, [name, image, description, buttonColor, footerText, link, cardBorderColor, habitatId], (err, result) => {
+      if (err) {
+        console.error('Error updating habitat:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      res.send('Habitat updated successfully');
+    });
+  });
+
+// Supprimer un habitat
+router.delete('/habitats/:id', (req, res) => {
+    const habitatId = req.params.id;
+    const sql = 'DELETE FROM habitats WHERE id=?';
+    db.query(sql, [habitatId], (err, result) => {
+      if (err) {
+        console.error('Error deleting habitat:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      res.send('Habitat deleted successfully');
+    });
+  });
+
+  
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
