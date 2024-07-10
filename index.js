@@ -506,17 +506,12 @@ app.post('/animals/:id/view', async (req, res) => {
 
 
 //Gestion des habitats
-app.get('/habitats', (req, res) => {
-    const query = 'SELECT * FROM habitats'; 
-    pool.query(query, (err, result) => {
+app.get('/habitats', (req, res) => { 
+    pool.query('SELECT * FROM habitats', (err, result) => {
         if (err) {
             console.error('Erreur lors de la récupération des habitats :', err);
             res.status(500).json({ error: 'Erreur serveur lors de la récupération des habitats' });
-            return;
-        }
-
-        const habitats = result.rows;
-
+            } else {
         // Ajuster chaque résultat pour inclure l'URL complète de l'image
         const habitatsWithImageUrl = habitats.map(habitat => {
             return {
@@ -524,8 +519,8 @@ app.get('/habitats', (req, res) => {
                 image: habitat.image // Assurez-vous que habitat.image est déjà une URL complète
             };
         });
-
         res.json(habitatsWithImageUrl);
+    }
     });
 });
 
