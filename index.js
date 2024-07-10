@@ -506,62 +506,64 @@ app.post('/animals/:id/view', async (req, res) => {
 
 
 //Gestion des habitats
-router.get('/Habitats', (req, res) => {
-    const sql = 'SELECT * FROM habitats';
+router.get('/habitats', (req, res) => {
+    const sql = 'SELECT * FROM Habitats';
     db.query(sql, (err, habitats) => {
-      if (err) {
-        console.error('Error fetching habitats:', err);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-      res.json(habitats);
+        if (err) {
+            console.error('Error fetching habitats:', err);
+            res.status(500).json({ error: 'Internal server error' });
+            return;
+        }
+        res.json(habitats);
     });
-  });
+});
 
 // Créer un nouvel habitat
-router.post('/habitats', (req, res) => {
-    const { name, image, description, buttonColor, footerText, link, cardBorderColor } = req.body;
-    const sql = 'INSERT INTO habitats (name, image, description, buttonColor, footerText, link, cardBorderColor) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [name, image, description, buttonColor, footerText, link, cardBorderColor], (err, result) => {
-      if (err) {
-        console.error('Error creating habitat:', err);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-      res.status(201).send('Habitat created successfully');
-    });
+router.post('/habitats', upload.single('image'), async (req, res) => {
+    const { name, description } = req.body;
+    const imageUrl = req.file.location; // URL de l'image dans S3
+  
+    try {
+      const query = 'INSERT INTO habitats (name, description, image, animal_list) VALUES (?, ?, ?, ?)';
+      await pool.query(query, [name, description, imageUrl]);
+  
+      res.status(201).json({ message: 'Habitat ajouté avec succès', habitat: { name, description, imageUrl } });
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion de l\'habitat :', error);
+      res.status(500).json({ message: 'Erreur lors de l\'insertion de l\'habitat' });
+    }
   });
 
 // Mettre à jour un habitat
 router.put('/habitats/:id', (req, res) => {
     const habitatId = req.params.id;
-    const { name, image, description, buttonColor, footerText, link, cardBorderColor } = req.body;
-    const sql = 'UPDATE habitats SET name=?, image=?, description=?, buttonColor=?, footerText=?, link=?, cardBorderColor=? WHERE id=?';
-    db.query(sql, [name, image, description, buttonColor, footerText, link, cardBorderColor, habitatId], (err, result) => {
-      if (err) {
-        console.error('Error updating habitat:', err);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-      res.send('Habitat updated successfully');
+    const { name, description, image, animal_list } = req.body;
+    const sql = 'UPDATE Habitats SET name=?, description=?, image=?, animal_list=? WHERE id=?';
+    db.query(sql, [name, description, image, animal_list, habitatId], (err, result) => {
+        if (err) {
+            console.error('Error updating habitat:', err);
+            res.status(500).json({ error: 'Internal server error' });
+            return;
+        }
+        res.send('Habitat updated successfully');
     });
-  });
+});
 
 // Supprimer un habitat
 router.delete('/habitats/:id', (req, res) => {
     const habitatId = req.params.id;
-    const sql = 'DELETE FROM habitats WHERE id=?';
+    const sql = 'DELETE FROM Habitats WHERE id=?';
     db.query(sql, [habitatId], (err, result) => {
-      if (err) {
-        console.error('Error deleting habitat:', err);
-        res.status(500).json({ error: 'Internal server error' });
-        return;
-      }
-      res.send('Habitat deleted successfully');
+        if (err) {
+            console.error('Error deleting habitat:', err);
+            res.status(500).json({ error: 'Internal server error' });
+            return;
+        }
+        res.send('Habitat deleted successfully');
     });
-  });
+});
 
-  
+
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
