@@ -506,7 +506,7 @@ app.post('/animals/:id/view', async (req, res) => {
 
 
 //Gestion des habitats
-router.get('/habitats', (req, res) => {
+app.get('/habitats', (req, res) => {
     const sql = 'SELECT * FROM Habitats';
     db.query(sql, (err, habitats) => {
         if (err) {
