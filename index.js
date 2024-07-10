@@ -504,6 +504,18 @@ app.post('/animals/:id/view', async (req, res) => {
 });
 
 
+//Gestion des habitats
+router.get('/Habitats', (req, res) => {
+    const sql = 'SELECT * FROM habitats';
+    db.query(sql, (err, habitats) => {
+      if (err) {
+        console.error('Error fetching habitats:', err);
+        res.status(500).json({ error: 'Internal server error' });
+        return;
+      }
+      res.json(habitats);
+    });
+  });
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
