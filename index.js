@@ -457,6 +457,51 @@ function deleteImageFromS3(imageUrl) {
 }
 
 
+// Gestion des animaux 
+const AnimalView = mongoose.model('AnimalView', new mongoose.Schema({
+    animalId: String,
+    viewCount: Number
+}));
+
+// Routes pour les habitats, animaux et enregistrements vétérinaires
+
+// Ajouter un animal
+app.post('/animals', (req, res) => {
+    const { name, species, age, habitat_id } = req.body;
+    pool.query('INSERT INTO Animals (name, species, age, habitat_id) VALUES (?, ?, ?, ?)', [name, species, age, habitat_id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'animal' });
+        }
+        res.status(201).json({ message: 'Animal ajouté avec succès', id: results.insertId });
+    });
+});
+
+// Récupérer les détails d'un animal
+app.get('/animals/:id', (req, res) => {
+    const { id } = req.params;
+    pool.query('SELECT * FROM Animals WHERE id = ?', [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Animal non trouvé' });
+        }
+        res.json(results[0]);
+    });
+});
+
+// Incrémenter le compteur de consultations d'un animal
+app.post('/animals/:id/view', async (req, res) => {
+    const { id } = req.params;
+    const animalView = await AnimalView.findOne({ animalId: id });
+    if (animalView) {
+        animalView.viewCount += 1;
+        await animalView.save();
+    } else {
+        await AnimalView.create({ animalId: id, viewCount: 1 });
+    }
+    res.status(200).json({ message: 'Consultation enregistrée' });
+});
 
 
 
