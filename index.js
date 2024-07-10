@@ -520,7 +520,7 @@ router.get('/habitats', (req, res) => {
 
 // Créer un nouvel habitat
 router.post('/Habitats', upload.single('image'), async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, animal_list } = req.body;
     const imageUrl = req.file.location; // URL de l'image dans S3
   
     try {
