@@ -565,17 +565,49 @@ router.put('/habitats/:id', (req, res) => {
 });
 
 // Supprimer un habitat
-router.delete('/habitats/:id', (req, res) => {
-    const habitatId = req.params.id;
-    const sql = 'DELETE FROM Habitats WHERE id=?';
-    db.query(sql, [habitatId], (err, result) => {
-        if (err) {
-            console.error('Error deleting habitat:', err);
-            res.status(500).json({ error: 'Internal server error' });
-            return;
-        }
-        res.send('Habitat deleted successfully');
-    });
+app.delete('/habitats/:id', (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Récupérer l'URL de l'image depuis la base de données
+        const querySelect = 'SELECT image FROM habitats WHERE id = ?';
+        pool.query(querySelect, [id], async (err, rows, fields) => {
+            if (err) {
+                console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
+                throw err;
+            }
+
+            // Vérifier si aucune entrée n'est trouvée
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Service non trouvé' });
+            }
+
+            const imageUrl = rows[0].image;
+
+            // Supprimer l'image depuis S3
+            try {
+                await deleteImageFromS3(imageUrl);
+
+                // Supprimer le service depuis la base de données
+                const queryDelete = 'DELETE FROM habitats WHERE id = ?';
+                pool.query(queryDelete, [id], (err, result) => {
+                    if (err) {
+                        console.error(`Erreur lors de la suppression de lhabitat : ${err.message}`);
+                        throw err;
+                    }
+
+                    console.log(`Habitat avec l'ID ${id} supprimé avec succès`);
+                    res.status(200).json({ message: 'Habitat et image supprimés avec succès' });
+                });
+            } catch (error) {
+                console.error(`Erreur lors de la suppression de lhabitat : ${error.message}`);
+                res.status(500).json({ message: 'Erreur lors de la suppression du lhabitat' });
+            }
+        });
+    } catch (error) {
+        console.error(`Erreur lors de la suppression de lhabitat : ${error.message}`);
+        res.status(500).json({ message: 'Erreur lors de la suppression de lhabitat' });
+    }
 });
 
 
