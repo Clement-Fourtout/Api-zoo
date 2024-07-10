@@ -461,22 +461,6 @@ const animalViewSchema = new mongoose.Schema({
     viewCount: { type: Number, default: 0 }
 });
 
-app.post('/animals/:id/view', async (req, res) => {
-    try {
-        const { id } = req.params;
-        let animalView = await AnimalView.findOne({ animalId: id });
-        if (!animalView) {
-            animalView = new AnimalView({ animalId: id, viewCount: 1 });
-        } else {
-            animalView.viewCount += 1;
-        }
-        await animalView.save();
-        res.status(200).json({ message: 'View count updated', viewCount: animalView.viewCount });
-    } catch (error) {
-        console.error('Error updating view count:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
 
 
 app.listen(PORT, () => {
