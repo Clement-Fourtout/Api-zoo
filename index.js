@@ -511,16 +511,16 @@ app.get('/habitats', (req, res) => {
         if (err) {
             console.error('Erreur lors de la récupération des habitats :', err);
             res.status(500).json({ error: 'Erreur serveur lors de la récupération des habitats' });
-            } else {
-        // Ajuster chaque résultat pour inclure l'URL complète de l'image
-        const habitatsWithImageUrl = habitats.map(habitat => {
-            return {
-                ...habitat,
-                image: habitat.image // Assurez-vous que habitat.image est déjà une URL complète
-            };
-        });
-        res.json(habitatsWithImageUrl);
-    }
+        } else {
+            // Ajuster chaque résultat pour inclure l'URL complète de l'image
+            const habitatsWithImageUrl = habitats.map(habitat => {
+                return {
+                    ...habitat,
+                    image: habitat.image // Assurez-vous que habitat.image est déjà une URL complète
+                };
+            });
+            res.json(habitatsWithImageUrl);
+        }
     });
 });
 
