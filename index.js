@@ -525,9 +525,18 @@ router.post('/Habitats', upload.single('image'), async (req, res) => {
   
     try {
       const query = 'INSERT INTO Habitats (name, description, image, animal_list) VALUES (?, ?, ?, ?)';
-      await pool.query(query, [name, description, imageUrl]);
+      const result = await pool.query(query, [name, description, imageUrl, animal_list]); // Ajoute animal_list à la liste des valeurs
   
-      res.status(201).json({ message: 'Habitat ajouté avec succès', habitat: { name, description, image, animal_list } });
+      // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
+      const insertedHabitat = {
+        id: result.insertId,
+        name,
+        description,
+        image: imageUrl,
+        animal_list,
+      };
+  
+      res.status(201).json({ message: 'Habitat ajouté avec succès', habitat: insertedHabitat });
     } catch (error) {
       console.error('Erreur lors de l\'insertion de l\'habitat :', error);
       res.status(500).json({ message: 'Erreur lors de l\'insertion de l\'habitat' });
