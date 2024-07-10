@@ -456,10 +456,7 @@ function deleteImageFromS3(imageUrl) {
     });
 }
 
-const animalViewSchema = new mongoose.Schema({
-    animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal' },
-    viewCount: { type: Number, default: 0 }
-});
+
 
 
 
