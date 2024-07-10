@@ -519,12 +519,12 @@ router.get('/habitats', (req, res) => {
 });
 
 // Créer un nouvel habitat
-router.post('/Habitats', upload.single('image'), async (req, res) => {
+router.post('/habitats', upload.single('image'), async (req, res) => {
     const { name, description, animal_list } = req.body;
     const imageUrl = req.file.location; // URL de l'image dans S3
   
     try {
-      const query = 'INSERT INTO Habitats (name, description, image, animal_list) VALUES (?, ?, ?, ?)';
+      const query = 'INSERT INTO habitats (name, description, image, animal_list) VALUES (?, ?, ?, ?)';
       const result = await pool.query(query, [name, description, imageUrl, animal_list]); // Ajoute animal_list à la liste des valeurs
   
       // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
