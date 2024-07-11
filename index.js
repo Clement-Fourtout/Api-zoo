@@ -494,7 +494,7 @@ app.post('/animals', upload.single('image'), async (req, res) => {
 // Récupérer les détails d'un animal
 app.get('/animals', (req, res) => {
     const { id } = req.params;
-    pool.query('SELECT * FROM Animals WHERE id = ?', [id], (err, results) => {
+    pool.query('SELECT * FROM animals', (err, results) => {
         if (err) {
             return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
         }
