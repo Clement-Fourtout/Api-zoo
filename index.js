@@ -495,16 +495,21 @@ app.post('/animals', upload.single('image'), async (req, res) => {
 app.get('/animals', (req, res) => {
     pool.query('SELECT * FROM animals', (err, results) => {
         if (err) {
+            console.error('Erreur lors de la récupération des détails de l\'animal :', err);
             return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
         } else {
             // Ajuster chaque résultat pour inclure l'URL complète de l'image
-            const servicesWithImageUrl = results.map(service => {
+            const animalsWithImageUrl = results.map(animal => {
                 return {
-                    ...service,
-                    image_url: service.image_url // Assurez-vous que service.image_url est déjà une URL complète
+                    id: animal.id,
+                    name: animal.name,
+                    species: animal.species,
+                    age: animal.age,
+                    habitat_id: animal.habitat_id,
+                    image_url: animal.image_url // Assurez-vous que cela correspond à votre structure de données
                 };
             });
-            res.json(servicesWithImageUrl);
+            res.json(animalsWithImageUrl);
         }
     });
 });
