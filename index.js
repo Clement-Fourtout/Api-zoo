@@ -506,7 +506,7 @@ app.get('/animals', (req, res) => {
                     species: animal.species,
                     age: animal.age,
                     habitat_id: animal.habitat_id,
-                    image_url: animal.image_url // Assurez-vous que cela correspond à votre structure de données
+                    image: animal.image // Assurez-vous que cela correspond à votre structure de données
                 };
             });
             res.json(animalsWithImageUrl);
