@@ -476,10 +476,11 @@ app.post('/animals', upload.single('image'), async (req, res) => {
       const result = await pool.query(query, [name, species, age, habitat_id, imageUrl]); // Ajoute animal_list à la liste des valeurs
   
       // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
-      const insertedHabitat = {
+      const insertedanimals = {
         id: result.insertId,
         name,
         species,
+        age,
         image: imageUrl,
         habitat_id,
       };
