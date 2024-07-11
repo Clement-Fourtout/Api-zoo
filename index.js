@@ -493,7 +493,7 @@ app.post('/animals', upload.single('image'), async (req, res) => {
   });
 // Récupérer les détails d'un animal
 app.get('/animals', (req, res) => {
-    pool.query('SELECT * FROM animals', (err, results) => {
+    pool.query('SELECT animals.*, habitats.name AS habitat_name FROM animals LEFT JOIN habitats ON animals.habitat_id = habitats.id', (err, results) => {
         if (err) {
             console.error('Erreur lors de la récupération des détails de l\'animal :', err);
             return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
@@ -506,6 +506,7 @@ app.get('/animals', (req, res) => {
                     species: animal.species,
                     age: animal.age,
                     habitat_id: animal.habitat_id,
+                    habitat_name: animal.habitat_name,
                     image: animal.image // Assurez-vous que cela correspond à votre structure de données
                 };
             });
