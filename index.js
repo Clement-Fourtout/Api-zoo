@@ -475,15 +475,6 @@ app.post('/animals', upload.single('image'), async (req, res) => {
       const query = 'INSERT INTO animals (name, species, age, habitat_id, image) VALUES (?, ?, ?, ?, ?)';
       const result = await pool.query(query, [name, species, age, habitat_id, imageUrl]); // Ajoute animal_list à la liste des valeurs
   
-      // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
-      const insertedAnimal = {
-        id: result.insertId,
-        name,
-        species,
-        age,
-        image: imageUrl,
-        habitat_id,
-      };
   
       res.status(201).json({ message: 'Animal ajouté avec succès', id: results.insertId });
     } catch (error) {
