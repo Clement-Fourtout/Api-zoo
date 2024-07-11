@@ -467,16 +467,29 @@ const AnimalView = mongoose.model('AnimalView', new mongoose.Schema({
 // Routes pour les habitats, animaux et enregistrements vétérinaires
 
 // Ajouter un animal
-app.post('/animals', (req, res) => {
+app.post('/animals', upload.single('image'), async (req, res) => {
     const { name, species, age, habitat_id } = req.body;
-    pool.query('INSERT INTO Animals (name, species, age, habitat_id) VALUES (?, ?, ?, ?)', [name, species, age, habitat_id], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: 'Erreur lors de l\'ajout de l\'animal' });
-        }
-        res.status(201).json({ message: 'Animal ajouté avec succès', id: results.insertId });
-    });
-});
-
+    const imageUrl = req.file.location; // URL de l'image dans S3
+  
+    try {
+      const query = 'INSERT INTO animals (name, species, age, habitat_id, image) VALUES (?, ?, ?, ?, ?)';
+      const result = await pool.query(query, [name, species, age, habitat_id, imageUrl]); // Ajoute animal_list à la liste des valeurs
+  
+      // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
+      const insertedHabitat = {
+        id: result.insertId,
+        name,
+        species,
+        image: imageUrl,
+        habitat_id,
+      };
+  
+      res.status(201).json({ message: 'Animal ajouté avec succès', id: results.insertId });
+    } catch (error) {
+      console.error('Erreur lors de l\'insertion de l\'animal :', error);
+      res.status(500).json({ error: 'Erreur serveur lors de l\'ajout de l\'animal' });
+    }
+  });
 // Récupérer les détails d'un animal
 app.get('/animals/:id', (req, res) => {
     const { id } = req.params;
