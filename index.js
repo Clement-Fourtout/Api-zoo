@@ -492,7 +492,7 @@ app.post('/animals', upload.single('image'), async (req, res) => {
     }
   });
 // Récupérer les détails d'un animal
-app.get('/animals/:id', (req, res) => {
+app.get('/animals', (req, res) => {
     const { id } = req.params;
     pool.query('SELECT * FROM Animals WHERE id = ?', [id], (err, results) => {
         if (err) {
