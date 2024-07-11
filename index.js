@@ -492,16 +492,20 @@ app.post('/animals', upload.single('image'), async (req, res) => {
     }
   });
 // Récupérer les détails d'un animal
-app.get('/animals/:id', (req, res) => {
-    const { id } = req.params;
-    pool.query('SELECT * FROM animals WHERE id = ?', [id], (err, results) => {
+app.get('/animals', (req, res) => {
+    pool.query('SELECT * FROM animals', (err, results) => {
         if (err) {
             return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
+        } else {
+            // Ajuster chaque résultat pour inclure l'URL complète de l'image
+            const servicesWithImageUrl = results.map(service => {
+                return {
+                    ...service,
+                    image_url: service.image_url // Assurez-vous que service.image_url est déjà une URL complète
+                };
+            });
+            res.json(servicesWithImageUrl);
         }
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'Animal non trouvé' });
-        }
-        res.json(results[0]);
     });
 });
 
