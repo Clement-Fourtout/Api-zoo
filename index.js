@@ -515,6 +515,49 @@ app.get('/animals', (req, res) => {
     });
 });
 
+app.delete('/animals/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+        // Récupérer l'URL de l'image depuis la base de données
+        const querySelect = 'SELECT image FROM animals WHERE id = ?';
+        pool.query(querySelect, [id], async (err, rows, fields) => {
+            if (err) {
+                console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
+                throw err;
+            }
+
+            // Vérifier si aucune entrée n'est trouvée
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Service non trouvé' });
+            }
+
+            const imageUrl = rows[0].image;
+  
+            try {
+                await deleteImageFromS3(imageUrl);
+
+                // Supprimer le service depuis la base de données
+                const queryDelete = 'DELETE FROM animals WHERE id = ?';
+                pool.query(queryDelete, [id], (err, result) => {
+                    if (err) {
+                        console.error(`Erreur lors de la suppression de lanimal : ${err.message}`);
+                        throw err;
+                    }
+
+                    console.log(`Animal avec l'ID ${id} supprimé avec succès`);
+                    res.status(200).json({ message: 'Animal et image supprimés avec succès' });
+                });
+            } catch (error) {
+                console.error(`Erreur lors de la suppression de lanimal : ${error.message}`);
+                res.status(500).json({ message: 'Erreur lors de la suppression du lanimal' });
+            }
+        });
+    } catch (error) {
+        console.error(`Erreur lors de la suppression de lanimal : ${error.message}`);
+        res.status(500).json({ message: 'Erreur lors de la suppression de lanimal' });
+    }
+});
 // Incrémenter le compteur de consultations d'un animal
 app.post('/animals/:id/view', async (req, res) => {
     const { id } = req.params;
