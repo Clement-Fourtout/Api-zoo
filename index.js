@@ -524,6 +524,23 @@ app.get('/habitats', (req, res) => {
     });
 });
 
+// Affichage habitats par id
+app.get('/habitats/:id', (req, res) => {
+    const habitatId = req.params.id;
+    pool.query('SELECT * FROM habitats WHERE id = ?', habitatId, (err, result) => {
+        if (err) {
+            console.error('Erreur lors de la récupération de l\'habitat :', err);
+            res.status(500).json({ error: 'Erreur serveur lors de la récupération de l\'habitat' });
+        } else if (result.length === 0) {
+            res.status(404).json({ error: 'Habitat non trouvé' });
+        } else {
+            const habitat = result[0];
+            // Ajuster l'image si nécessaire comme indiqué précédemment
+            res.json(habitat);
+        }
+    });
+});
+
 // Créer un nouvel habitat
 app.post('/habitats', upload.single('image'), async (req, res) => {
     const { name, description, animal_list } = req.body;
