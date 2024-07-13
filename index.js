@@ -708,22 +708,47 @@ app.get('/animals/:id', (req, res) => {
       });
     });
   });
-  
-app.put('/vetrecords/:id', (req, res) => {
-    const { id } = req.params;
-    const { health_status, food, food_amount, visit_date, details } = req.body;
-  
-    const query = 'UPDATE vetrecords SET health_status = ?, food = ?, food_amount = ?, visit_date = ?, details = ? WHERE id = ?';
-    const values = [health_status, food, food_amount, visit_date, details, id];
-  
-    pool.query(query, values, (err, results) => {
+
+
+// Affichage des données vétérinaires
+app.get('/vetrecords/:id', (req, res) => {
+    const vetrecordId = req.params.id;
+    pool.query('SELECT * FROM vetrecords WHERE id = ?', [vetrecordId], (err, results) => {
       if (err) {
-        return res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'enregistrement vétérinaire' });
+        return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'enregistrement vétérinaire' });
       }
-      res.json({ message: 'Enregistrement vétérinaire mis à jour avec succès' });
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Enregistrement vétérinaire non trouvé' });
+      }
+      res.json(results[0]);
     });
   });
-
+  
+//Ajout de données vétérinaires 
+app.post('/vetrecords', (req, res) => {
+    const { animal_id, health_status, food, food_amount, visit_date, details } = req.body;
+  
+    if (!animal_id || !health_status || !food || !food_amount || !visit_date) {
+      return res.status(400).json({ error: 'Tous les champs sont requis' });
+    }
+  
+    const insertQuery = 'INSERT INTO vetrecords (animal_id, health_status, food, food_amount, visit_date, details) VALUES (?, ?, ?, ?, ?, ?)';
+    const values = [animal_id, health_status, food, food_amount, visit_date, details];
+  
+    pool.query(insertQuery, values, (err, results) => {
+      if (err) {
+        console.error('Erreur lors de l\'insertion de l\'enregistrement vétérinaire :', err);
+        return res.status(500).json({ error: 'Erreur lors de l\'insertion de l\'enregistrement vétérinaire' });
+      }
+  
+      const insertedId = results.insertId;
+      res.status(201).json({ id: insertedId, message: 'Enregistrement vétérinaire ajouté avec succès' });
+    });
+  });
+  
+  app.listen(port, () => {
+    console.log(`Serveur démarré sur le port ${port}`);
+  });
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/increment', (req, res) => {
     const animalId = req.params.id;
