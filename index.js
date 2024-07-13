@@ -558,18 +558,6 @@ app.delete('/animals/:id', async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la suppression de lanimal' });
     }
 });
-// Incrémenter le compteur de consultations d'un animal
-app.post('/animals/:id/view', async (req, res) => {
-    const { id } = req.params;
-    const animalView = await AnimalView.findOne({ animalId: id });
-    if (animalView) {
-        animalView.viewCount += 1;
-        await animalView.save();
-    } else {
-        await AnimalView.create({ animalId: id, viewCount: 1 });
-    }
-    res.status(200).json({ message: 'Consultation enregistrée' });
-});
 
 
 //Gestion des habitats
@@ -721,6 +709,35 @@ app.get('/animals/:id', (req, res) => {
     });
   });
   
+app.put('/vetrecords/:id', (req, res) => {
+    const { id } = req.params;
+    const { health_status, food, food_amount, visit_date, details } = req.body;
+  
+    const query = 'UPDATE vetrecords SET health_status = ?, food = ?, food_amount = ?, visit_date = ?, details = ? WHERE id = ?';
+    const values = [health_status, food, food_amount, visit_date, details, id];
+  
+    pool.query(query, values, (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: 'Erreur lors de la mise à jour de l\'enregistrement vétérinaire' });
+      }
+      res.json({ message: 'Enregistrement vétérinaire mis à jour avec succès' });
+    });
+  });
+
+// Incrémenter le compteur de consultation
+app.post('/animals/:id/increment', (req, res) => {
+    const animalId = req.params.id;
+    pool.query(
+      'UPDATE animals SET consultations = consultations + 1 WHERE id = ?',
+      [animalId],
+      (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Erreur lors de l\'incrémentation des consultations de l\'animal' });
+        }
+        res.sendStatus(200);
+      }
+    );
+  });
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
