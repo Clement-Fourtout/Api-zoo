@@ -712,18 +712,22 @@ app.get('/animals/:id', (req, res) => {
 
 // Affichage des données vétérinaires
 app.get('/vetrecords/:id', (req, res) => {
-    const vetrecordId = req.params.id;
-    pool.query('SELECT * FROM vetrecords WHERE id = ?', [vetrecordId], (err, results) => {
+    const vetRecordId = req.params.id;
+  
+    // Exemple avec utilisation de pool.query pour interagir avec la base de données
+    pool.query('SELECT * FROM vetrecords WHERE id = ?', [vetRecordId], (err, results) => {
       if (err) {
+        console.error('Erreur lors de la récupération des détails de l\'enregistrement vétérinaire :', err);
         return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'enregistrement vétérinaire' });
       }
+  
       if (results.length === 0) {
         return res.status(404).json({ error: 'Enregistrement vétérinaire non trouvé' });
       }
+  
       res.json(results[0]);
     });
   });
-
 //Ajout de données vétérinaires 
 app.post('/vetrecords', (req, res) => {
     const { animal_id, health_status, food, food_amount, visit_date, details } = req.body;
@@ -771,6 +775,8 @@ app.post('/vetrecords', (req, res) => {
   app.delete('/vetrecords/:id', async (req, res) => {
     try {
       const vetRecordId = req.params.id;
+  
+      // Exemple avec utilisation d'un modèle mongoose ou équivalent pour interagir avec la base de données
       const deletedVetRecord = await VetRecord.findByIdAndDelete(vetRecordId);
   
       if (!deletedVetRecord) {
