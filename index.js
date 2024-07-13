@@ -768,6 +768,22 @@ app.post('/vetrecords', (req, res) => {
       res.status(200).json({ message: 'Données vétérinaires mises à jour avec succès' });
     });
   });
+  app.delete('/vetrecords/:id', async (req, res) => {
+    try {
+      const vetRecordId = req.params.id;
+      const deletedVetRecord = await VetRecord.findByIdAndDelete(vetRecordId);
+  
+      if (!deletedVetRecord) {
+        return res.status(404).json({ message: 'Enregistrement vétérinaire non trouvé' });
+      }
+  
+      res.json({ message: 'Enregistrement vétérinaire supprimé avec succès' });
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'enregistrement vétérinaire :', error);
+      res.status(500).json({ message: 'Erreur lors de la suppression de l\'enregistrement vétérinaire' });
+    }
+  });
+
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/increment', (req, res) => {
     const animalId = req.params.id;
