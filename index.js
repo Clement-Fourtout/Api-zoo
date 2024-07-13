@@ -772,23 +772,24 @@ app.post('/vetrecords', (req, res) => {
       res.status(200).json({ message: 'Données vétérinaires mises à jour avec succès' });
     });
   });
-  app.delete('/vetrecords/:id', async (req, res) => {
-    try {
-      const vetRecordId = req.params.id;
-  
-      // Exemple avec utilisation d'un modèle mongoose ou équivalent pour interagir avec la base de données
-      const deletedVetRecord = await VetRecord.findByIdAndDelete(vetRecordId);
-  
-      if (!deletedVetRecord) {
-        return res.status(404).json({ message: 'Enregistrement vétérinaire non trouvé' });
-      }
-  
-      res.json({ message: 'Enregistrement vétérinaire supprimé avec succès' });
-    } catch (error) {
-      console.error('Erreur lors de la suppression de l\'enregistrement vétérinaire :', error);
-      res.status(500).json({ message: 'Erreur lors de la suppression de l\'enregistrement vétérinaire' });
-    }
-  });
+  app.delete('/vetrecords/:id', (req, res) => {
+    const vetRecordId = req.params.id;
+
+    const deleteQuery = 'DELETE FROM vetrecords WHERE id = ?';
+
+    pool.query(deleteQuery, [vetRecordId], (err, results) => {
+        if (err) {
+            console.error('Erreur lors de la suppression de l\'enregistrement vétérinaire :', err);
+            return res.status(500).json({ error: 'Erreur lors de la suppression de l\'enregistrement vétérinaire' });
+        }
+
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ error: 'Enregistrement vétérinaire non trouvé' });
+        }
+
+        res.json({ message: 'Enregistrement vétérinaire supprimé avec succès' });
+    });
+});
 
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/increment', (req, res) => {
