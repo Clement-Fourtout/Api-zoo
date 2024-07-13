@@ -745,7 +745,29 @@ app.post('/vetrecords', (req, res) => {
       res.status(201).json({ id: insertedId, message: 'Enregistrement vétérinaire ajouté avec succès' });
     });
   });
+//Mettre a jour des données vétérinaires
+  app.put('/vetrecords/:id', (req, res) => {
+    const vetRecordId = req.params.id;
+    const { health_status, food, food_amount, visit_date, details } = req.body;
   
+    // Validation des données requises
+    if (!health_status || !food || !food_amount || !visit_date) {
+      return res.status(400).json({ error: 'Tous les champs doivent être remplis' });
+    }
+  
+    // Update query
+    const updateQuery = `UPDATE vetrecords SET health_status = ?, food = ?, food_amount = ?, visit_date = ?, details = ? WHERE id = ?`;
+  
+    // Execute the query
+    pool.query(updateQuery, [health_status, food, food_amount, visit_date, details, vetRecordId], (error, results) => {
+      if (error) {
+        console.error('Erreur lors de la mise à jour des données vétérinaires :', error);
+        return res.status(500).json({ error: 'Erreur lors de la mise à jour des données vétérinaires' });
+      }
+  
+      res.status(200).json({ message: 'Données vétérinaires mises à jour avec succès' });
+    });
+  });
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/increment', (req, res) => {
     const animalId = req.params.id;
