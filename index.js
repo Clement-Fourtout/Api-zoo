@@ -723,7 +723,7 @@ app.get('/vetrecords/:id', (req, res) => {
       res.json(results[0]);
     });
   });
-  
+
 //Ajout de données vétérinaires 
 app.post('/vetrecords', (req, res) => {
     const { animal_id, health_status, food, food_amount, visit_date, details } = req.body;
@@ -746,9 +746,6 @@ app.post('/vetrecords', (req, res) => {
     });
   });
   
-  app.listen(port, () => {
-    console.log(`Serveur démarré sur le port ${port}`);
-  });
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/increment', (req, res) => {
     const animalId = req.params.id;
