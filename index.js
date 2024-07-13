@@ -694,6 +694,33 @@ app.delete('/habitats/:id', (req, res) => {
     }
 });
 
+// Récupération Animal + Affichage des données vétérinaires
+app.get('/animals/:id', (req, res) => {
+    const animalId = req.params.id;
+    const animalQuery = 'SELECT * FROM animals WHERE id = ?';
+    const vetRecordsQuery = 'SELECT * FROM vetrecords WHERE animal_id = ?';
+  
+    pool.query(animalQuery, [animalId], (err, animalResults) => {
+      if (err) {
+        return res.status(500).json({ error: 'Erreur lors de la récupération des détails de l\'animal' });
+      }
+  
+      if (animalResults.length === 0) {
+        return res.status(404).json({ error: 'Animal non trouvé' });
+      }
+  
+      pool.query(vetRecordsQuery, [animalId], (err, vetRecordsResults) => {
+        if (err) {
+          return res.status(500).json({ error: 'Erreur lors de la récupération des enregistrements vétérinaires' });
+        }
+  
+        const animal = animalResults[0];
+        animal.vetRecords = vetRecordsResults;
+        res.json(animal);
+      });
+    });
+  });
+  
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
