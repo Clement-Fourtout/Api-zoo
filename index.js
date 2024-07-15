@@ -797,26 +797,29 @@ app.post('/vetrecords', (req, res) => {
 
 app.post('/animalviews', async (req, res) => {
     try {
-        // Suppose you extract the animalId from the request body or URL params
-        const animalId = req.body.animal_id; // or req.params.animalId
-
-        // Here you would increment the consultations for the animal with the given ID
-        // For illustration purposes, let's assume you have a function to increment consultations
-        const updatedAnimal = await incrementConsultations(animalId);
-
-        // Return the updated animal data as JSON response
-        res.status(200).json(updatedAnimal);
+      const { animalId } = req.body; // Supposons que l'animalId est envoyé dans le corps de la requête
+  
+      // Vérifier si l'animalId est un ObjectId valide
+      if (!ObjectId.isValid(animalId)) {
+        throw new Error('Invalid animalId');
+      }
+  
+      // Enregistrer la consultation dans la collection animalviews
+      const result = await db.collection('animalviews').insertOne({
+        animalId: ObjectId(animalId),
+        timestamp: new Date(),
+      });
+  
+      if (result.insertedCount === 1) {
+        res.status(200).json({ message: 'Consultation incremented successfully.' });
+      } else {
+        throw new Error('Failed to increment consultation.');
+      }
     } catch (error) {
-        console.error('Error incrementing consultations:', error);
-
-        // Check the type of error and send an appropriate response
-        if (error.message === 'Invalid animalId' || error.message === 'Animal not found') {
-            res.status(404).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+      console.error('Error incrementing consultations:', error);
+      res.status(500).json({ error: 'Internal server error' });
     }
-});
+  });
 
 // Function to increment consultations for an animal
 async function incrementConsultations(animalId) {
