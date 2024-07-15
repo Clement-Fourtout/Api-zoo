@@ -94,17 +94,7 @@ const animalSchema = new mongoose.Schema({
     animalId: String,
     viewCount: { type: Number, default: 0 }
   });
-  const AnimalViewer = mongoose.model('AnimalView', {
-    animalId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Animal',
-      required: true
-    },
-    viewCount: {
-      type: Number,
-      default: 0
-    }
-  });
+
   const Animal = mongoose.model('Animal', animalSchema);
   const AnimalView = mongoose.model('AnimalView', animalViewSchema);
 
@@ -820,19 +810,6 @@ app.post('/vetrecords', (req, res) => {
         res.json({ message: 'Enregistrement vétérinaire supprimé avec succès' });
     });
 });
-app.get('/animalviews', async (req, res) => {
-    try {
-      const animalViews = await AnimalViewer.find().populate('animalId', 'name');
-      const animalViewsData = animalViews.map(view => ({
-        animalName: view.animalId.name,
-        viewCount: view.viewCount
-      }));
-      res.json(animalViewsData);
-    } catch (err) {
-      console.error('Error fetching animal views:', err);
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
-  });
 
 let requestLock = {};
 
