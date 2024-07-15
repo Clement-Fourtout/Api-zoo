@@ -817,6 +817,7 @@ app.post('/animals/:id/increment', async (req, res) => {
     }
 });
 
+// Fonction pour incrémenter les consultations d'un animal
 async function incrementConsultations(animalId) {
     try {
         // Vérifiez si animalId est un ObjectId valide
@@ -842,6 +843,7 @@ async function incrementConsultations(animalId) {
         throw error; // Remonte l'erreur pour la gestion par la suite
     }
 }
+
 
 // Route pour obtenir les statistiques des animaux
 app.get('/animals/stats', async (req, res) => {
