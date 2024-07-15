@@ -797,14 +797,12 @@ app.post('/vetrecords', (req, res) => {
 
 app.post('/animalviews', async (req, res) => {
     try {
-      const { animalId } = req.body; // Supposons que l'animalId est envoyé dans le corps de la requête
+      const { animalId } = req.body;
   
-      // Vérifier si l'animalId est un ObjectId valide
       if (!ObjectId.isValid(animalId)) {
         throw new Error('Invalid animalId');
       }
   
-      // Enregistrer la consultation dans la collection animalviews
       const result = await db.collection('animalviews').insertOne({
         animalId: ObjectId(animalId),
         timestamp: new Date(),
@@ -820,33 +818,6 @@ app.post('/animalviews', async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
-
-// Function to increment consultations for an animal
-async function incrementConsultations(animalId) {
-    try {
-        // Check if animalId is a valid ObjectId (assuming MongoDB ObjectId)
-        if (!mongoose.Types.ObjectId.isValid(animalId)) {
-            throw new Error('Invalid animalId');
-        }
-
-        // Use findByIdAndUpdate to increment the 'consultations' field of the Animal
-        const updatedAnimal = await Animal.findByIdAndUpdate(
-            animalId,
-            { $inc: { consultations: 1 } },
-            { new: true } // To return the updated document
-        );
-
-        if (!updatedAnimal) {
-            throw new Error('Animal not found');
-        }
-
-        console.log('Animal updated:', updatedAnimal);
-        return updatedAnimal;
-    } catch (error) {
-        console.error('Error incrementing consultations:', error);
-        throw error; // Throw the error for handling elsewhere
-    }
-}
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
