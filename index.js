@@ -811,6 +811,21 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
+app.get('/animals/:id/name', async (req, res) => {
+    try {
+      const animalId = req.params.id;
+      // Remplacez cette logique par votre propre méthode pour récupérer le nom de l'animal depuis la base de données
+      const animal = await Animal.findById(animalId);
+      if (!animal) {
+        return res.status(404).json({ message: 'Animal not found' });
+      }
+      res.json({ id: animal._id, name: animal.name });
+    } catch (error) {
+      console.error('Error fetching animal name:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
 app.get('/animalviews', async (req, res) => {
     try {
       const animalViews = await AnimalView.find({});
