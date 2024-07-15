@@ -796,12 +796,13 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
+// Route pour l'incrémentation des consultations
 app.post('/animals/:id/consultations', async (req, res) => {
     const animalId = req.params.id;
 
     try {
-        // Récupérer l'animal depuis la base de données
-        const animal = await Animal.findById(animalId);
+        // Logique pour récupérer l'animal avec l'ID spécifié depuis la base de données
+        const animal = await Animal.findById(animalId); // Assurez-vous que cette partie fonctionne correctement
 
         if (!animal) {
             return res.status(404).json({ error: 'Animal non trouvé' });
