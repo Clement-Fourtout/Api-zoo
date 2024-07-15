@@ -18,7 +18,6 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 
-
 // Middleware pour parser le JSON
 app.use(express.json());
 app.use(bodyParser.json());
@@ -27,7 +26,6 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
@@ -69,6 +67,11 @@ const mongoURI = process.env.MONGODB_URI
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('Error connecting to MongoDB:', err));
+
+const AnimalViews = mongoose.model('AnimalViews', new mongoose.Schema({
+        animalId: String,
+        consultations: Number
+    }, { collection: 'vues des animaux' }));
 
 
 // Supprimer une tâche
@@ -791,7 +794,32 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
+app.post('/api/animals/consult/:id', async (req, res) => {
+    try {
+        const animalView = await AnimalViews.findOne({ animalId: req.params.id });
+        if (animalView) {
+            animalView.consultations += 1;
+            await animalView.save();
+            res.status(200).send(animalView);
+        } else {
+            const newAnimalView = new AnimalViews({ animalId: req.params.id, consultations: 1 });
+            await newAnimalView.save();
+            res.status(200).send(newAnimalView);
+        }
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
+// Route pour obtenir les statistiques
+app.get('/api/animals/stats', async (req, res) => {
+    try {
+        const animals = await AnimalViews.find().sort({ consultations: -1 });
+        res.status(200).send(animals);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
