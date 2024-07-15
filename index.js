@@ -17,7 +17,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient, ObjectId } = require('mongodb');
 
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
