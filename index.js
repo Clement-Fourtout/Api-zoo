@@ -34,7 +34,7 @@ MongoClient.connect(connectionString, function(err, db) {
     if (err) {
         console.log('Error: ', err);
     } else {
-        console.log('Connected!');
+        console.log('Connected to Mongodb!');
         process.exit();
     }
 });
