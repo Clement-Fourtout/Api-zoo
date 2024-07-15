@@ -811,6 +811,8 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
+let requestLock = {};
+
 app.post('/animalviews', async (req, res) => {
   const { animalId } = req.body;
 
@@ -818,6 +820,12 @@ app.post('/animalviews', async (req, res) => {
     console.error('Invalid animalId:', animalId);
     return res.status(400).send('Invalid animalId');
   }
+
+  // Verrou pour éviter les requêtes multiples
+  if (requestLock[animalId]) {
+    return res.status(429).send('Too many requests, please try again later.');
+  }
+  requestLock[animalId] = true;
 
   try {
     let animalView = await AnimalView.findOne({ animalId: animalId.toString() });
@@ -833,6 +841,9 @@ app.post('/animalviews', async (req, res) => {
   } catch (error) {
     console.error('Error incrementing consultations:', error);
     res.status(500).send('Internal server error');
+  } finally {
+    // Retirer le verrou après un délai court
+    setTimeout(() => { delete requestLock[animalId]; }, 1000);
   }
 });
 
