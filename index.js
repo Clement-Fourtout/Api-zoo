@@ -19,6 +19,25 @@ const router = express.Router();
 const PORT = process.env.PORT || 3000;
 var MongoClient = require('mongodb').MongoClient;
 
+var username = process.env.MONGODB_USERNAME;
+var password = process.env.MONGODB_PASSWORD;
+var hosts = process.env.MONGODB_HOSTS;
+var database = process.env.MONGODB_DATABASE;
+var options = process.env.MONGODB_OPTIONS;
+var connectionString = 'mongodb://' + username + ':' + password + '@' + hosts + '/' + database + options;
+
+MongoClient.connect(connectionString, function(err, db) {
+    if (db) {
+        db.close();
+    }
+    if (err) {
+        console.log('Error: ', err);
+    } else {
+        console.log('Connected!');
+        process.exit();
+    }
+});
+
 // Middleware pour parser le JSON
 app.use(express.json());
 app.use(bodyParser.json());
