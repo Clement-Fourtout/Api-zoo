@@ -1,4 +1,3 @@
-const animalRoutes = require('./Animal');
 
 require('dotenv').config();
 
@@ -28,7 +27,7 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-app.use('/animals', animalRoutes);
+
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
@@ -792,30 +791,7 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
-app.post('/consult/:id', async (req, res) => {
-    try {
-      const animal = await Animal.findById(req.params.id);
-      if (animal) {
-        animal.consultations += 1;
-        await animal.save();
-        res.status(200).send(animal);
-      } else {
-        res.status(404).send('Animal not found');
-      }
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  });
-  
-  // Route pour obtenir les statistiques
- app.get('/stats', async (req, res) => {
-    try {
-      const animals = await Animal.find().sort({ consultations: -1 });
-      res.status(200).send(animals);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  });
+
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
