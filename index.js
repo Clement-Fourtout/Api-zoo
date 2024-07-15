@@ -89,9 +89,6 @@ const animalViewSchema = new mongoose.Schema({
   });
 
 const AnimalView = mongoose.model('AnimalView', animalViewSchema);
-newAnimal.save()
-  .then(() => console.log('Animal ajouté avec succès'))
-  .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
 
 
 // Supprimer une tâche
