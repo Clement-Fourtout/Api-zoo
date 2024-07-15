@@ -15,6 +15,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
+const Animal = require('./models/Animal');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
@@ -795,36 +796,46 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
-const animalSchema = new mongoose.Schema({
-    name: String,
-    type: String,
-    increment: { type: Number, default: 0 }
-});
-
-// Création du modèle Animal à partir du schéma
-const Animal = mongoose.model('Animal', animalSchema);
 
 // Route pour l'incrémentation des consultations
 app.post('/animals/:animalId/increment', async (req, res) => {
     const animalId = req.params.animalId;
 
     try {
+        const updatedAnimal = await incrementConsultations(animalId);
+
+        res.status(200).json(updatedAnimal);
+    } catch (error) {
+        console.error('Error in POST /animals/:animalId/increment:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+async function incrementConsultations(animalId) {
+    try {
+        // Vérifiez si animalId est un ObjectId valide
+        if (!mongoose.Types.ObjectId.isValid(animalId)) {
+            throw new Error('Invalid animalId');
+        }
+
+        // Utilisez findByIdAndUpdate pour incrémenter le champ `increment` de Animal
         const updatedAnimal = await Animal.findByIdAndUpdate(
             animalId,
             { $inc: { increment: 1 } },
-            { new: true }
+            { new: true } // Pour retourner le document mis à jour
         );
 
         if (!updatedAnimal) {
-            return res.status(404).json({ error: 'Animal not found' });
+            throw new Error('Animal not found');
         }
 
-        return res.json(updatedAnimal);
+        console.log('Animal updated:', updatedAnimal);
+        return updatedAnimal;
     } catch (error) {
         console.error('Error incrementing consultations:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        throw error; // Remonte l'erreur pour la gestion par la suite
     }
-});
+}
 
 // Route pour obtenir les statistiques des animaux
 app.get('/animals/stats', async (req, res) => {
