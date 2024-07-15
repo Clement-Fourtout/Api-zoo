@@ -14,6 +14,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const { Schema } = mongoose;
 const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
@@ -82,7 +83,23 @@ const upload = multer({
     }),
 });
 
+const animalSchema = new Schema({
+    name: String,
+    species: String,
+    age: Number,
+  });
 
+const Animal = mongoose.model('Animal', animalSchema);
+
+const newAnimal = new Animal({
+    name: 'Lion',
+    species: 'Panthera leo',
+    age: 5,
+  });
+
+newAnimal.save()
+  .then(() => console.log('Animal ajouté avec succès'))
+  .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
 // Supprimer une tâche
 app.delete('/users/:userId', (req, res) => {
     const userId = req.params.userId;
