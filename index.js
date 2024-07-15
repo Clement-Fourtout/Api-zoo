@@ -15,7 +15,6 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
-const Animal = require('./models/Animal');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
@@ -797,70 +796,6 @@ app.post('/vetrecords', (req, res) => {
 });
 
 
-// Route pour l'incrémentation des consultations
-app.post('/animals/:id/increment', async (req, res) => {
-    const animalId = req.params.id;
-
-    try {
-        const updatedAnimal = await incrementConsultations(animalId);
-
-        res.status(200).json(updatedAnimal);
-    } catch (error) {
-        console.error('Error in POST /animals/:id/increment:', error);
-
-        // Vérifiez le type d'erreur et renvoyez une réponse appropriée
-        if (error.message === 'Invalid animalId' || error.message === 'Animal not found') {
-            res.status(404).json({ error: error.message });
-        } else {
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
-    }
-});
-
-// Fonction pour incrémenter les consultations d'un animal
-async function incrementConsultations(animalId) {
-    try {
-        // Vérifiez si animalId est un ObjectId valide
-        if (!mongoose.Types.ObjectId.isValid(animalId)) {
-            throw new Error('Invalid animalId');
-        }
-
-        // Utilisez findByIdAndUpdate pour incrémenter le champ `increment` de Animal
-        const updatedAnimal = await Animal.findByIdAndUpdate(
-            animalId,
-            { $inc: { increment: 1 } },
-            { new: true } // Pour retourner le document mis à jour
-        );
-
-        if (!updatedAnimal) {
-            throw new Error('Animal not found');
-        }
-
-        console.log('Animal updated:', updatedAnimal);
-        return updatedAnimal;
-    } catch (error) {
-        console.error('Error incrementing consultations:', error);
-        throw error; // Remonte l'erreur pour la gestion par la suite
-    }
-}
-
-
-// Route pour obtenir les statistiques des animaux
-app.get('/animals/stats', async (req, res) => {
-    try {
-        // Récupérer tous les animaux avec le nombre de consultations depuis la base de données
-        const animals = await Animal.find({}, { increment: 1 });
-
-        // Calculer le total des consultations pour tous les animaux
-        const totalConsultations = animals.reduce((acc, animal) => acc + animal.increment, 0);
-
-        // Répondre avec les statistiques des animaux
-        res.json({ totalConsultations, animals });
-    } catch (error) {
-        console.error('Erreur lors de la récupération des statistiques des animaux :', error);
-        res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques des animaux' });
-    }
-});
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
