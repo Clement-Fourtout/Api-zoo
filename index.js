@@ -811,6 +811,16 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
+app.get('/animalviews', async (req, res) => {
+    try {
+      const animalViews = await AnimalView.find({});
+      res.json(animalViews);
+    } catch (error) {
+      console.error('Error fetching animal views:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
 let requestLock = {};
 
 app.post('/animalviews', async (req, res) => {
