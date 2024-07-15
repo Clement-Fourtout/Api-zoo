@@ -794,31 +794,32 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
+// Exemple de route pour incrémenter les consultations d'un animal
 app.post('/animals/:id/increment', async (req, res) => {
     const animalId = req.params.id;
   
     try {
-      // Récupérer l'animal de la base de données
-      const animal = await Animal.findById(animalId);
+      // Logique pour récupérer l'animal avec l'ID spécifié depuis la base de données
+      const animal = await Animal.findById(animalId); // Supposons que vous utilisez un modèle Animal
   
       if (!animal) {
-        return res.status(404).json({ message: 'Animal non trouvé' });
+        return res.status(404).json({ error: 'Animal non trouvé' });
       }
   
-      // Incrémenter le compteur de consultations
-      animal.consultations = animal.consultations + 1;
+      // Incrémenter le nombre de consultations
+      animal.consultations = animal.consultations ? animal.consultations + 1 : 1; // Incrémente ou initialise à 1 si null
   
       // Sauvegarder les modifications dans la base de données
       await animal.save();
   
-      // Répondre avec les données mises à jour de l'animal
-      res.json({ message: 'Consultations incrémentées avec succès', animal });
+      // Répondre avec succès
+      res.status(200).json({ message: 'Consultations incrémentées avec succès', animal });
     } catch (error) {
       console.error('Erreur lors de l\'incrémentation des consultations :', error);
-      res.status(500).json({ message: 'Erreur serveur lors de l\'incrémentation des consultations' });
+      res.status(500).json({ error: 'Erreur serveur lors de l\'incrémentation des consultations' });
     }
   });
-
+  
 // Route pour obtenir les statistiques
 app.get('/animals/stats', async (req, res) => {
     try {
