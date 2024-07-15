@@ -819,26 +819,26 @@ app.post('/vetrecords', (req, res) => {
 });
 
 app.post('/animalviews', async (req, res) => {
+    const animalId = req.body.animalId || req.body._id;
+  
+    if (!animalId) {
+      return res.status(400).send('Invalid animalId');
+    }
+  
     try {
-      const { animalId } = req.body;
+      const animalView = await AnimalView.findOne({ animalId });
   
-      if (!ObjectId.isValid(animalId)) {
-        throw new Error('Invalid animalId');
-      }
-  
-      const result = await db.collection('animalviews').insertOne({
-        animalId: ObjectId(animalId),
-        timestamp: new Date(),
-      });
-  
-      if (result.insertedCount === 1) {
-        res.status(200).json({ message: 'Consultation incremented successfully.' });
+      if (animalView) {
+        animalView.viewCount += 1;
+        await animalView.save();
       } else {
-        throw new Error('Failed to increment consultation.');
+        await new AnimalView({ animalId, viewCount: 1 }).save();
       }
+  
+      res.status(200).send('Consultation incrémentée avec succès');
     } catch (error) {
       console.error('Error incrementing consultations:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).send('Internal server error');
     }
   });
 
@@ -864,7 +864,7 @@ const incrementConsultations = async (animalId) => {
     incrementConsultations(savedAnimal._id);
   })
   .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
-   
+
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
