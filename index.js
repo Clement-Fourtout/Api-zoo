@@ -811,7 +811,7 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
-app.get('/animals/:id/name', async (req, res) => {
+app.get('/animals', async (req, res) => {
     try {
       const animalId = req.params.id;
       // Remplacez cette logique par votre propre méthode pour récupérer le nom de l'animal depuis la base de données
@@ -819,7 +819,7 @@ app.get('/animals/:id/name', async (req, res) => {
       if (!animal) {
         return res.status(404).json({ message: 'Animal not found' });
       }
-      res.json({ id: animal._id, name: animal.name });
+      res.json({ id: animal.id, name: animal.name });
     } catch (error) {
       console.error('Error fetching animal name:', error);
       res.status(500).json({ message: 'Internal server error' });
