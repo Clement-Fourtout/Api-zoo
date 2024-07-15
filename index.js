@@ -96,9 +96,10 @@ const animalViewSchema = new Schema({
         default: 0
       }
     });
+module.exports = mongoose.model('AnimalView', animalViewSchema);
 
-const Animal = mongoose.model('Animal', animalSchema);
-const AnimalView = mongoose.model('AnimalView', animalViewSchema);
+  const Animal = mongoose.model('Animal', animalSchema);
+  const AnimalView = mongoose.model('AnimalView', animalViewSchema);
 
 
 // Supprimer une tâche
@@ -814,15 +815,20 @@ app.post('/vetrecords', (req, res) => {
 });
 app.get('/animalviews', async (req, res) => {
     try {
-      const animalViews = await AnimalView.find().populate('animalId', 'name');
-      const animalViewsData = animalViews.map(view => ({
-        animalName: view.animalId.name,
-        viewCount: view.viewCount
-      }));
-      res.json(animalViewsData);
+      const animalViews = await AnimalView.aggregate([
+        {
+          $group: {
+            _id: '$animalId',
+            totalViews: { $sum: '$views' }
+          }
+        },
+        { $sort: { totalViews: -1 } }
+      ]);
+  
+      res.json(animalViews);
     } catch (err) {
       console.error('Error fetching animal views:', err);
-      res.status(500).json({ message: 'Internal Server Error' });
+      res.status(500).send('Error fetching animal views');
     }
   });
 
