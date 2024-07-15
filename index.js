@@ -15,7 +15,6 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const mongoose = require('mongoose');
-const Animal = require('./models/Animal');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
