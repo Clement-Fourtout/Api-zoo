@@ -14,7 +14,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const mongoose = require('mongoose');
+const Animal = require('./Animals')
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
@@ -81,13 +81,6 @@ const upload = multer({
         },
     }),
 });
-
-
-
-const AnimalViews = mongoose.model('AnimalViews', new mongoose.Schema({
-        animalId: String,
-        consultations: Number
-    }, { collection: 'vues des animaux' }));
 
 
 // Supprimer une tâche
@@ -805,45 +798,45 @@ app.post('/vetrecords', (req, res) => {
 // Incrémenter le compteur de consultation
 app.post('/animals/:id/consultations', async (req, res) => {
     const animalId = req.params.id;
-  
+
     try {
-      // Logique pour récupérer l'animal avec l'ID spécifié depuis la base de données
-      const animal = await Animal.findById(animalId); // Supposons que vous utilisez un modèle Animal
-  
-      if (!animal) {
-        return res.status(404).json({ error: 'Animal non trouvé' });
-      }
-  
-      // Incrémenter le nombre de consultations
-      animal.consultations = animal.consultations ? animal.consultations + 1 : 1; // Incrémente ou initialise à 1 si null
-  
-      // Sauvegarder les modifications dans la base de données
-      await animal.save();
-  
-      // Répondre avec succès
-      res.status(200).json({ message: 'Consultations incrémentées avec succès', animal });
+        // Récupérer l'animal depuis la base de données
+        const animal = await Animal.findById(animalId);
+
+        if (!animal) {
+            return res.status(404).json({ error: 'Animal non trouvé' });
+        }
+
+        // Incrémenter le nombre de consultations
+        animal.consultations = animal.consultations ? animal.consultations + 1 : 1;
+
+        // Sauvegarder les modifications dans la base de données
+        await animal.save();
+
+        // Répondre avec succès
+        res.status(200).json({ message: 'Consultations incrémentées avec succès', animal });
     } catch (error) {
-      console.error('Erreur lors de l\'incrémentation des consultations :', error);
-      res.status(500).json({ error: 'Erreur serveur lors de l\'incrémentation des consultations' });
+        console.error('Erreur lors de l\'incrémentation des consultations :', error);
+        res.status(500).json({ error: 'Erreur serveur lors de l\'incrémentation des consultations' });
     }
-  });
-  
-// Route pour obtenir les statistiques
+});
+
+// Route pour obtenir les statistiques des animaux
 app.get('/animals/stats', async (req, res) => {
     try {
-      // Récupérer tous les animaux avec le nombre de consultations depuis la base de données
-      const animals = await Animal.find({}, { consultations: 1 });
-  
-      // Calculer le total des consultations pour tous les animaux
-      const totalConsultations = animals.reduce((acc, animal) => acc + animal.consultations, 0);
-  
-      // Répondre avec les statistiques des animaux
-      res.json({ totalConsultations, animals });
+        // Récupérer tous les animaux avec le nombre de consultations depuis la base de données
+        const animals = await Animal.find({}, { consultations: 1 });
+
+        // Calculer le total des consultations pour tous les animaux
+        const totalConsultations = animals.reduce((acc, animal) => acc + animal.consultations, 0);
+
+        // Répondre avec les statistiques des animaux
+        res.json({ totalConsultations, animals });
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques des animaux :', error);
-      res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques des animaux' });
+        console.error('Erreur lors de la récupération des statistiques des animaux :', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques des animaux' });
     }
-  });
+});
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
