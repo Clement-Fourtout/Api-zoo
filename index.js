@@ -85,18 +85,15 @@ const upload = multer({
         },
     }),
 });
-const animalViewSchema = new Schema({
-    animalId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Animal',
-      required: true
-    },
-    viewCount: {
-        type: Number,
-        default: 0
-      }
-    });
-module.exports = mongoose.model('AnimalView', animalViewSchema);
+const animalSchema = new mongoose.Schema({
+    name: String,
+    species: String,
+    age: Number
+  });
+  const animalViewSchema = new mongoose.Schema({
+    animalId: String,
+    viewCount: { type: Number, default: 0 }
+  });
 
   const Animal = mongoose.model('Animal', animalSchema);
   const AnimalView = mongoose.model('AnimalView', animalViewSchema);
