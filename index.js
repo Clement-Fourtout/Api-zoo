@@ -14,7 +14,7 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const Animal = require('./Animals')
+const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
@@ -795,30 +795,34 @@ app.post('/vetrecords', (req, res) => {
     });
 });
 
-// Incrémenter le compteur de consultation
+const animalSchema = new mongoose.Schema({
+    name: String,
+    type: String,
+    increment: { type: Number, default: 0 }
+});
+
+// Création du modèle Animal à partir du schéma
+const Animal = mongoose.model('Animal', animalSchema);
+
 // Route pour l'incrémentation des consultations
-app.post('/animals/:id/increment', async (req, res) => {
-    const animalId = req.params.id;
+app.post('/animals/:animalId/increment', async (req, res) => {
+    const animalId = req.params.animalId;
 
     try {
-        // Logique pour récupérer l'animal avec l'ID spécifié depuis la base de données
-        const animal = await Animal.findById(animalId); // Assurez-vous que cette partie fonctionne correctement
+        const updatedAnimal = await Animal.findByIdAndUpdate(
+            animalId,
+            { $inc: { increment: 1 } },
+            { new: true }
+        );
 
-        if (!animal) {
-            return res.status(404).json({ error: 'Animal non trouvé' });
+        if (!updatedAnimal) {
+            return res.status(404).json({ error: 'Animal not found' });
         }
 
-        // Incrémenter le nombre de consultations
-        animal.increment = animal.increment ? animal.increment + 1 : 1;
-
-        // Sauvegarder les modifications dans la base de données
-        await animal.save();
-
-        // Répondre avec succès
-        res.status(200).json({ message: 'Consultations incrémentées avec succès', animal });
+        return res.json(updatedAnimal);
     } catch (error) {
-        console.error('Erreur lors de l\'incrémentation des consultations :', error);
-        res.status(500).json({ error: 'Erreur serveur lors de l\'incrémentation des consultations' });
+        console.error('Error incrementing consultations:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 });
 
