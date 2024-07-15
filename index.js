@@ -795,7 +795,7 @@ app.post('/vetrecords', (req, res) => {
 
 // Incrémenter le compteur de consultation
 // Exemple de route pour incrémenter les consultations d'un animal
-app.post('/animals/:id/increment', async (req, res) => {
+app.post('/animals/:id/consultations', async (req, res) => {
     const animalId = req.params.id;
   
     try {
