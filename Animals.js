@@ -5,7 +5,7 @@ const animalSchema = new mongoose.Schema({
     name: { type: String, required: true },
     species: { type: String, required: true },
     age: { type: Number },
-    consultations: { type: Number, default: 0 } // Champ pour le nombre de consultations
+    increment: { type: Number, default: 0 } // Champ pour le nombre de consultations
 });
 
 // Définition du modèle Animal basé sur le schéma

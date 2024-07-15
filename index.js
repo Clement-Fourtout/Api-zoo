@@ -797,7 +797,7 @@ app.post('/vetrecords', (req, res) => {
 
 // Incrémenter le compteur de consultation
 // Route pour l'incrémentation des consultations
-app.post('/animals/:id/consultations', async (req, res) => {
+app.post('/animals/:id/increment', async (req, res) => {
     const animalId = req.params.id;
 
     try {
@@ -809,7 +809,7 @@ app.post('/animals/:id/consultations', async (req, res) => {
         }
 
         // Incrémenter le nombre de consultations
-        animal.consultations = animal.consultations ? animal.consultations + 1 : 1;
+        animal.increment = animal.increment ? animal.increment + 1 : 1;
 
         // Sauvegarder les modifications dans la base de données
         await animal.save();
@@ -826,10 +826,10 @@ app.post('/animals/:id/consultations', async (req, res) => {
 app.get('/animals/stats', async (req, res) => {
     try {
         // Récupérer tous les animaux avec le nombre de consultations depuis la base de données
-        const animals = await Animal.find({}, { consultations: 1 });
+        const animals = await Animal.find({}, { increment: 1 });
 
         // Calculer le total des consultations pour tous les animaux
-        const totalConsultations = animals.reduce((acc, animal) => acc + animal.consultations, 0);
+        const totalConsultations = animals.reduce((acc, animal) => acc + animal.increment, 0);
 
         // Répondre avec les statistiques des animaux
         res.json({ totalConsultations, animals });
