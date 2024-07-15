@@ -88,7 +88,7 @@ const animalViewSchema = new mongoose.Schema({
     viewCount: { type: Number, default: 0 },
   });
 
-const AnimalView = mongoose.model('AnimalView', animalViewSchema);
+  const AnimalView = mongoose.model('AnimalView', animalViewSchema);
 
 
 // Supprimer une tâche
@@ -804,29 +804,32 @@ app.post('/vetrecords', (req, res) => {
 });
 
 app.post('/animalviews', async (req, res) => {
-  const animalId = req.body.animalId;
-
-  if (!mongoose.Types.ObjectId.isValid(animalId)) {
-    console.error('Invalid animalId:', animalId);
-    return res.status(400).send('Invalid animalId');
-  }
-
-  try {
-    const animalView = await AnimalView.findOne({ animalId });
-
-    if (animalView) {
-      animalView.viewCount += 1;
-      await animalView.save();
-    } else {
-      await new AnimalView({ animalId, viewCount: 1 }).save();
+    let { animalId } = req.body;
+  
+    if (!mongoose.Types.ObjectId.isValid(animalId)) {
+      console.error('Invalid animalId:', animalId);
+      return res.status(400).send('Invalid animalId');
     }
-
-    res.status(200).send('Consultation incrémentée avec succès');
-  } catch (error) {
-    console.error('Error incrementing consultations:', error);
-    res.status(500).send('Internal server error');
-  }
-});
+  
+    // Convert to ObjectId
+    animalId = mongoose.Types.ObjectId(animalId);
+  
+    try {
+      const animalView = await AnimalView.findOne({ animalId });
+  
+      if (animalView) {
+        animalView.viewCount += 1;
+        await animalView.save();
+      } else {
+        await new AnimalView({ animalId, viewCount: 1 }).save();
+      }
+  
+      res.status(200).send('Consultation incrémentée avec succès');
+    } catch (error) {
+      console.error('Error incrementing consultations:', error);
+      res.status(500).send('Internal server error');
+    }
+  });
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
