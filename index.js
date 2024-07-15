@@ -810,6 +810,24 @@ app.post('/vetrecords', (req, res) => {
         res.json({ message: 'Enregistrement vétérinaire supprimé avec succès' });
     });
 });
+app.get('/animalviews', async (req, res) => {
+    try {
+      const animalViews = await AnimalView.aggregate([
+        {
+          $group: {
+            _id: '$animalId',
+            totalViews: { $sum: '$views' }
+          }
+        },
+        { $sort: { totalViews: -1 } }
+      ]);
+  
+      res.json(animalViews);
+    } catch (err) {
+      console.error('Error fetching animal views:', err);
+      res.status(500).send('Error fetching animal views');
+    }
+  });
 
 let requestLock = {};
 
