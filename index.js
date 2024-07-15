@@ -70,14 +70,16 @@ var database = process.env.MONGODB_DATABASE;
 var options = process.env.MONGODB_OPTIONS;
 var connectionString = `mongodb://${username}:${password}@${hosts}/${database}${options}`;
 
-MongoClient.connect(connectionString, function(err, client) {
-    if (err) {
-        console.log('Error connecting to MongoDB:', err);
-        process.exit(1); // Exit with failure
+MongoClient.connect(connectionString, function(err, db) {
+    if (db) {
+        db.close();
     }
-    console.log('Connected to MongoDB successfully');
-    // Perform operations here
-    client.close(); // Close the connection
+    if (err) {
+        console.log('Error: ', err);
+    } else {
+        console.log('Connected!');
+        process.exit();
+    }
 });
 
 const AnimalViews = mongoose.model('AnimalViews', new mongoose.Schema({
