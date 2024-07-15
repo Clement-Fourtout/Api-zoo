@@ -84,7 +84,7 @@ const upload = multer({
 });
 
 const animalViewSchema = new mongoose.Schema({
-    animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal' },
+    animalId: { type: String, ref: 'Animal' },
     viewCount: { type: Number, default: 0 },
   });
 
@@ -804,24 +804,22 @@ app.post('/vetrecords', (req, res) => {
 });
 
 app.post('/animalviews', async (req, res) => {
-    let { animalId } = req.body;
+    const { animalId } = req.body;
   
-    if (!mongoose.Types.ObjectId.isValid(animalId)) {
+    // Vérification simple que l'ID est bien un entier sous forme de chaîne
+    if (!animalId || isNaN(animalId)) {
       console.error('Invalid animalId:', animalId);
       return res.status(400).send('Invalid animalId');
     }
   
-    // Convert to ObjectId
-    animalId = mongoose.Types.ObjectId(animalId);
-  
     try {
-      const animalView = await AnimalView.findOne({ animalId });
+      let animalView = await AnimalView.findOne({ animalId });
   
       if (animalView) {
         animalView.viewCount += 1;
         await animalView.save();
       } else {
-        await new AnimalView({ animalId, viewCount: 1 }).save();
+        await new AnimalView({ animalId: animalId.toString(), viewCount: 1 }).save();
       }
   
       res.status(200).send('Consultation incrémentée avec succès');
