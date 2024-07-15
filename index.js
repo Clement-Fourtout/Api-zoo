@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
+app.use('/animals', animalRoutes);
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
