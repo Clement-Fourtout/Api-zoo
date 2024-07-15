@@ -17,6 +17,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
+var MongoClient = require('mongodb').MongoClient;
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -62,11 +63,22 @@ const upload = multer({
     }),
 });
 
+var username = process.env.MONGODB_USERNAME;
+var password = process.env.MONGODB_PASSWORD;
+var hosts = process.env.MONGODB_HOSTS;
+var database = process.env.MONGODB_DATABASE;
+var options = process.env.MONGODB_OPTIONS;
+var connectionString = `mongodb://${username}:${password}@${hosts}/${database}${options}`;
 
-const mongoURI = process.env.MONGODB_URI
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('Error connecting to MongoDB:', err));
+MongoClient.connect(connectionString, function(err, client) {
+    if (err) {
+        console.log('Error connecting to MongoDB:', err);
+        process.exit(1); // Exit with failure
+    }
+    console.log('Connected to MongoDB successfully');
+    // Perform operations here
+    client.close(); // Close the connection
+});
 
 const AnimalViews = mongoose.model('AnimalViews', new mongoose.Schema({
         animalId: String,
@@ -460,13 +472,6 @@ function deleteImageFromS3(imageUrl) {
 }
 
 
-// Gestion des animaux 
-const AnimalView = mongoose.model('AnimalView', new mongoose.Schema({
-    animalId: String,
-    viewCount: Number
-}));
-
-// Routes pour les habitats, animaux et enregistrements vétérinaires
 
 // Ajouter un animal
 app.post('/animals', upload.single('image'), async (req, res) => {
@@ -794,7 +799,6 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
-// Exemple de route pour incrémenter les consultations d'un animal
 app.post('/animals/:id/consultations', async (req, res) => {
     const animalId = req.params.id;
   
