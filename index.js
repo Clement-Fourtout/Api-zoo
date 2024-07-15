@@ -794,32 +794,47 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
-app.post('/api/animals/consult/:id', async (req, res) => {
+app.post('/animals/:id/increment', async (req, res) => {
+    const animalId = req.params.id;
+  
     try {
-        const animalView = await AnimalViews.findOne({ animalId: req.params.id });
-        if (animalView) {
-            animalView.consultations += 1;
-            await animalView.save();
-            res.status(200).send(animalView);
-        } else {
-            const newAnimalView = new AnimalViews({ animalId: req.params.id, consultations: 1 });
-            await newAnimalView.save();
-            res.status(200).send(newAnimalView);
-        }
+      // Récupérer l'animal de la base de données
+      const animal = await Animal.findById(animalId);
+  
+      if (!animal) {
+        return res.status(404).json({ message: 'Animal non trouvé' });
+      }
+  
+      // Incrémenter le compteur de consultations
+      animal.consultations = animal.consultations + 1;
+  
+      // Sauvegarder les modifications dans la base de données
+      await animal.save();
+  
+      // Répondre avec les données mises à jour de l'animal
+      res.json({ message: 'Consultations incrémentées avec succès', animal });
     } catch (error) {
-        res.status(500).send(error);
+      console.error('Erreur lors de l\'incrémentation des consultations :', error);
+      res.status(500).json({ message: 'Erreur serveur lors de l\'incrémentation des consultations' });
     }
-});
+  });
 
 // Route pour obtenir les statistiques
-app.get('/api/animals/stats', async (req, res) => {
+app.get('/animals/stats', async (req, res) => {
     try {
-        const animals = await AnimalViews.find().sort({ consultations: -1 });
-        res.status(200).send(animals);
+      // Récupérer tous les animaux avec le nombre de consultations depuis la base de données
+      const animals = await Animal.find({}, { consultations: 1 });
+  
+      // Calculer le total des consultations pour tous les animaux
+      const totalConsultations = animals.reduce((acc, animal) => acc + animal.consultations, 0);
+  
+      // Répondre avec les statistiques des animaux
+      res.json({ totalConsultations, animals });
     } catch (error) {
-        res.status(500).send(error);
+      console.error('Erreur lors de la récupération des statistiques des animaux :', error);
+      res.status(500).json({ message: 'Erreur serveur lors de la récupération des statistiques des animaux' });
     }
-});
+  });
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
