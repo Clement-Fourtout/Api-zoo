@@ -828,29 +828,6 @@ app.post('/animalviews', async (req, res) => {
   }
 });
 
-const incrementConsultations = async (animalId) => {
-    try {
-      const animalView = await AnimalView.findOne({ animalId });
-  
-      if (animalView) {
-        animalView.viewCount += 1;
-        await animalView.save();
-      } else {
-        await new AnimalView({ animalId, viewCount: 1 }).save();
-      }
-  
-      console.log('Consultation incrémentée avec succès');
-    } catch (err) {
-      console.error('Erreur lors de l\'incrémentation des consultations :', err);
-    }
-  };
-
-  newAnimal.save()
-  .then(savedAnimal => {
-    incrementConsultations(savedAnimal._id);
-  })
-  .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
-
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
