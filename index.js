@@ -17,7 +17,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
-const { MongoClient, ObjectId } = require('mongodb');
+const MongoClient = require('mongodb').MongoClient;
 const { Schema } = mongoose;
 
 const username = process.env.MONGODB_USERNAME;
@@ -83,24 +83,12 @@ const upload = multer({
     }),
 });
 
-const animalSchema = new Schema({
-    name: String,
-    species: String,
-    age: Number,
-  });
-  const animalViewSchema = new Schema({
+const animalViewSchema = new mongoose.Schema({
     animalId: { type: mongoose.Schema.Types.ObjectId, ref: 'Animal' },
     viewCount: { type: Number, default: 0 },
   });
-const Animal = mongoose.model('Animal', animalSchema);
+
 const AnimalView = mongoose.model('AnimalView', animalViewSchema);
-
-const newAnimal = new Animal({
-    name: 'Lion',
-    species: 'Panthera leo',
-    age: 5,
-  });
-
 newAnimal.save()
   .then(() => console.log('Animal ajouté avec succès'))
   .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
@@ -819,28 +807,29 @@ app.post('/vetrecords', (req, res) => {
 });
 
 app.post('/animalviews', async (req, res) => {
-    const animalId = req.body.animalId || req.body._id;
-  
-    if (!animalId) {
-      return res.status(400).send('Invalid animalId');
+  const animalId = req.body.animalId;
+
+  if (!mongoose.Types.ObjectId.isValid(animalId)) {
+    console.error('Invalid animalId:', animalId);
+    return res.status(400).send('Invalid animalId');
+  }
+
+  try {
+    const animalView = await AnimalView.findOne({ animalId });
+
+    if (animalView) {
+      animalView.viewCount += 1;
+      await animalView.save();
+    } else {
+      await new AnimalView({ animalId, viewCount: 1 }).save();
     }
-  
-    try {
-      const animalView = await AnimalView.findOne({ animalId });
-  
-      if (animalView) {
-        animalView.viewCount += 1;
-        await animalView.save();
-      } else {
-        await new AnimalView({ animalId, viewCount: 1 }).save();
-      }
-  
-      res.status(200).send('Consultation incrémentée avec succès');
-    } catch (error) {
-      console.error('Error incrementing consultations:', error);
-      res.status(500).send('Internal server error');
-    }
-  });
+
+    res.status(200).send('Consultation incrémentée avec succès');
+  } catch (error) {
+    console.error('Error incrementing consultations:', error);
+    res.status(500).send('Internal server error');
+  }
+});
 
 const incrementConsultations = async (animalId) => {
     try {
