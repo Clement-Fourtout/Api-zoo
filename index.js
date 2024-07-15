@@ -816,7 +816,7 @@ app.get('/animalviews', async (req, res) => {
         {
           $group: {
             _id: '$animalId',
-            totalViews: { $sum: '$views' }
+            viewCount: { $sum: '$views' }
           }
         },
         { $sort: { totalViews: -1 } }
