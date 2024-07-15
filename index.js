@@ -798,16 +798,22 @@ app.post('/vetrecords', (req, res) => {
 
 
 // Route pour l'incrémentation des consultations
-app.post('/animals/:animalId/increment', async (req, res) => {
-    const animalId = req.params.animalId;
+app.post('/animals/:id/increment', async (req, res) => {
+    const animalId = req.params.id;
 
     try {
         const updatedAnimal = await incrementConsultations(animalId);
 
         res.status(200).json(updatedAnimal);
     } catch (error) {
-        console.error('Error in POST /animals/:animalId/increment:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error in POST /animals/:id/increment:', error);
+
+        // Vérifiez le type d'erreur et renvoyez une réponse appropriée
+        if (error.message === 'Invalid animalId' || error.message === 'Animal not found') {
+            res.status(404).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
     }
 });
 
