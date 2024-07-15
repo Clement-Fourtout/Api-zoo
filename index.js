@@ -63,24 +63,7 @@ const upload = multer({
     }),
 });
 
-var username = process.env.MONGODB_USERNAME;
-var password = process.env.MONGODB_PASSWORD;
-var hosts = process.env.MONGODB_HOSTS;
-var database = process.env.MONGODB_DATABASE;
-var options = process.env.MONGODB_OPTIONS;
-var connectionString = `mongodb://${username}:${password}@${hosts}/${database}${options}`;
 
-MongoClient.connect(connectionString, function(err, db) {
-    if (db) {
-        db.close();
-    }
-    if (err) {
-        console.log('Error: ', err);
-    } else {
-        console.log('Connected!');
-        process.exit();
-    }
-});
 
 const AnimalViews = mongoose.model('AnimalViews', new mongoose.Schema({
         animalId: String,
