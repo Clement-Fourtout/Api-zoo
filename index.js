@@ -14,11 +14,11 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
-const { Schema } = mongoose;
 const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const { MongoClient, ObjectId } = require('mongodb');
+const { Schema } = mongoose;
 
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
@@ -100,6 +100,8 @@ const newAnimal = new Animal({
 newAnimal.save()
   .then(() => console.log('Animal ajouté avec succès'))
   .catch(err => console.error('Erreur lors de l\'ajout de l\'animal :', err));
+
+
 // Supprimer une tâche
 app.delete('/users/:userId', (req, res) => {
     const userId = req.params.userId;
