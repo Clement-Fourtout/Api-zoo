@@ -18,7 +18,6 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const PORT = process.env.PORT || 3000;
 const MongoClient = require('mongodb').MongoClient;
-const { Schema } = mongoose;
 
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
@@ -27,17 +26,21 @@ const database = process.env.MONGODB_DATABASE;
 const options = process.env.MONGODB_OPTIONS;
 const connectionString = 'mongodb://' + username + ':' + password + '@' + hosts + '/' + database + options;
 
-MongoClient.connect(connectionString, function(err, db) {
-    if (db) {
-        db.close();
-    }
+MongoClient.connect(connectionString, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Temps maximum pour sélectionner un serveur (en ms)
+    socketTimeoutMS: 45000, // Temps maximum pour l'activité du socket (en ms)
+    connectTimeoutMS: 10000 // Temps maximum pour établir une connexion (en ms)
+  }, (err, client) => {
     if (err) {
-        console.log('Error: ', err);
+      console.log('Error connecting to MongoDB:', err);
+      process.exit(1);
     } else {
-        console.log('Connected to Mongodb!');
-        process.exit();
+      console.log('Connected to MongoDB!');
+      client.close();
     }
-});
+  });
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -82,12 +85,17 @@ const upload = multer({
         },
     }),
 });
-
-const animalViewSchema = new mongoose.Schema({
-    animalId: { type: String, ref: 'Animal' },
-    viewCount: { type: Number, default: 0 },
+const animalSchema = new mongoose.Schema({
+    name: String,
+    species: String,
+    age: Number
+  });
+  const animalViewSchema = new mongoose.Schema({
+    animalId: String,
+    viewCount: { type: Number, default: 0 }
   });
 
+  const Animal = mongoose.model('Animal', animalSchema);
   const AnimalView = mongoose.model('AnimalView', animalViewSchema);
 
 
@@ -804,30 +812,38 @@ app.post('/vetrecords', (req, res) => {
 });
 
 app.post('/animalviews', async (req, res) => {
-    const { animalId } = req.body;
-  
-    // Vérification simple que l'ID est bien un entier sous forme de chaîne
-    if (!animalId || isNaN(animalId)) {
-      console.error('Invalid animalId:', animalId);
-      return res.status(400).send('Invalid animalId');
+  const { animalId } = req.body;
+
+  if (!animalId || isNaN(animalId)) {
+    console.error('Invalid animalId:', animalId);
+    return res.status(400).send('Invalid animalId');
+  }
+
+  try {
+    let animalView = await AnimalView.findOne({ animalId: animalId.toString() });
+
+    if (animalView) {
+      animalView.viewCount += 1;
+      await animalView.save();
+    } else {
+      await new AnimalView({ animalId: animalId.toString(), viewCount: 1 }).save();
     }
-  
-    try {
-      let animalView = await AnimalView.findOne({ animalId });
-  
-      if (animalView) {
-        animalView.viewCount += 1;
-        await animalView.save();
-      } else {
-        await new AnimalView({ animalId: animalId.toString(), viewCount: 1 }).save();
-      }
-  
-      res.status(200).send('Consultation incrémentée avec succès');
-    } catch (error) {
-      console.error('Error incrementing consultations:', error);
-      res.status(500).send('Internal server error');
-    }
-  });
+
+    res.status(200).send('Consultation incrémentée avec succès');
+  } catch (error) {
+    console.error('Error incrementing consultations:', error);
+    res.status(500).send('Internal server error');
+  }
+});
+
+mongoose.connect(connectionString, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 10000
+  }).then(() => console.log('Connected to MongoDB with Mongoose'))
+    .catch(err => console.error('Error connecting to MongoDB with Mongoose:', err));
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
