@@ -1,3 +1,4 @@
+const animalRoutes = require('./Animal');
 
 require('dotenv').config();
 
@@ -27,7 +28,7 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
+app.use('/animals', animalRoutes);
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
@@ -69,7 +70,6 @@ const mongoURI = process.env.MONGODB_URI
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('Error connecting to MongoDB:', err));
-
 
 
 // Supprimer une tâche
@@ -792,18 +792,29 @@ app.post('/vetrecords', (req, res) => {
 });
 
 // Incrémenter le compteur de consultation
-app.post('/animals/:id/increment', (req, res) => {
-    const animalId = req.params.id;
-    pool.query(
-      'UPDATE animals SET consultations = consultations + 1 WHERE id = ?',
-      [animalId],
-      (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Erreur lors de l\'incrémentation des consultations de l\'animal' });
-        }
-        res.sendStatus(200);
+app.post('/consult/:id', async (req, res) => {
+    try {
+      const animal = await Animal.findById(req.params.id);
+      if (animal) {
+        animal.consultations += 1;
+        await animal.save();
+        res.status(200).send(animal);
+      } else {
+        res.status(404).send('Animal not found');
       }
-    );
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  });
+  
+  // Route pour obtenir les statistiques
+ app.get('/stats', async (req, res) => {
+    try {
+      const animals = await Animal.find().sort({ consultations: -1 });
+      res.status(200).send(animals);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   });
 
 app.listen(PORT, () => {
