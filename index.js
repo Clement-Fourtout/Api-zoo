@@ -752,14 +752,14 @@ app.get('/vetrecords/:id', (req, res) => {
   });
 //Ajout de données vétérinaires 
 app.post('/vetrecords', (req, res) => {
-    const { animal_id, health_status, food, food_amount, visit_date, details } = req.body;
+    const { animal_id, health_status, food, food_amount, visit_date, visit_time, details } = req.body;
   
     if (!animal_id || !health_status || !food || !food_amount || !visit_date) {
       return res.status(400).json({ error: 'Tous les champs sont requis' });
     }
   
-    const insertQuery = 'INSERT INTO vetrecords (animal_id, health_status, food, food_amount, visit_date, details) VALUES (?, ?, ?, ?, ?, ?)';
-    const values = [animal_id, health_status, food, food_amount, visit_date, details];
+    const insertQuery = 'INSERT INTO vetrecords (animal_id, health_status, food, food_amount, visit_date, visit_time, details) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const values = [animal_id, health_status, food, food_amount, visit_date, visit_time, details];
   
     pool.query(insertQuery, values, (err, results) => {
       if (err) {
