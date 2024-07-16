@@ -490,12 +490,12 @@ function deleteImageFromS3(imageUrl) {
 
 // Ajouter un animal
 app.post('/animals', upload.single('image'), async (req, res) => {
-    const { name, species, age, habitat_id } = req.body;
+    const { name, species, age, description, habitat_id } = req.body;
     const imageUrl = req.file.location; // URL de l'image dans S3
   
     try {
-      const query = 'INSERT INTO animals (name, species, age, habitat_id, image) VALUES (?, ?, ?, ?, ?)';
-      const result = await pool.query(query, [name, species, age, habitat_id, imageUrl]); // Ajoute animal_list à la liste des valeurs
+      const query = 'INSERT INTO animals (name, species, age, description, habitat_id, image) VALUES (?, ?, ?, ?, ?, ?)';
+      const result = await pool.query(query, [name, species, age, description, habitat_id, imageUrl]); // Ajoute animal_list à la liste des valeurs
   
       // Renvoie le nouvel habitat avec toutes les données insérées, y compris l'image et la liste d'animaux
       const insertedAnimal = {
@@ -503,6 +503,7 @@ app.post('/animals', upload.single('image'), async (req, res) => {
         name,
         species,
         age,
+        description,
         image: imageUrl,
         habitat_id,
       };
@@ -527,6 +528,7 @@ app.get('/animals', (req, res) => {
                     name: animal.name,
                     species: animal.species,
                     age: animal.age,
+                    description: animal.description,
                     habitat_id: animal.habitat_id,
                     habitat_name: animal.habitat_name,
                     image: animal.image // Assurez-vous que cela correspond à votre structure de données
