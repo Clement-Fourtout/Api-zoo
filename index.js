@@ -841,25 +841,39 @@ app.get('/animalviews', async (req, res) => {
 let requestLock = {};
 
 app.post('/animalviews', async (req, res) => {
-    const { animalId, animalName } = req.body; // Assurez-vous de recevoir animalName
-  
-    try {
-      let animalView = await AnimalView.findOne({ animalId });
-  
-      if (animalView) {
-        animalView.viewCount += 1;
-        animalView.animalName = animalName; // Mettez à jour le nom de l'animal
-        await animalView.save();
-      } else {
-        animalView = new AnimalView({ animalId, animalName, viewCount: 1 });
-        await animalView.save();
-      }
-  
-      res.json(animalView);
-    } catch (error) {
-      res.status(500).json({ error: 'Erreur lors de l\'incrémentation des vues' });
+  const { animalId, animalName } = req.body;
+
+  if (!animalId || isNaN(animalId)) {
+    console.error('Invalid animalId:', animalId);
+    return res.status(400).send('Invalid animalId');
+  }
+
+  // Verrou pour éviter les requêtes multiples
+  if (requestLock[animalId]) {
+    return res.status(429).send('Too many requests, please try again later.');
+  }
+  requestLock[animalId] = true;
+
+  try {
+    let animalView = await AnimalView.findOne({ animalId: animalId.toString() });
+
+    if (animalView) {
+      animalView.viewCount += 1;
+      animalView.animalName = animalName; 
+      await animalView.save();
+    } else {
+      await new AnimalView({ animalId: animalId.toString(), animalName, viewCount: 1 }).save();
     }
-  });
+
+    res.status(200).send('Consultation incrémentée avec succès');
+  } catch (error) {
+    console.error('Error incrementing consultations:', error);
+    res.status(500).send('Internal server error');
+  } finally {
+    // Retirer le verrou après un délai court
+    setTimeout(() => { delete requestLock[animalId]; }, 1000);
+  }
+});
 
 mongoose.connect(connectionString, {
     useNewUrlParser: true,
