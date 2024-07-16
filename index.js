@@ -92,8 +92,10 @@ const animalSchema = new mongoose.Schema({
   });
   const animalViewSchema = new mongoose.Schema({
     animalId: String,
+    animalName: String, // Ajoutez cette ligne
     viewCount: { type: Number, default: 0 }
   });
+  
 
   const Animal = mongoose.model('Animal', animalSchema);
   const AnimalView = mongoose.model('AnimalView', animalViewSchema);
@@ -839,38 +841,25 @@ app.get('/animalviews', async (req, res) => {
 let requestLock = {};
 
 app.post('/animalviews', async (req, res) => {
-  const { animalId } = req.body;
-
-  if (!animalId || isNaN(animalId)) {
-    console.error('Invalid animalId:', animalId);
-    return res.status(400).send('Invalid animalId');
-  }
-
-  // Verrou pour éviter les requêtes multiples
-  if (requestLock[animalId]) {
-    return res.status(429).send('Too many requests, please try again later.');
-  }
-  requestLock[animalId] = true;
-
-  try {
-    let animalView = await AnimalView.findOne({ animalId: animalId.toString() });
-
-    if (animalView) {
-      animalView.viewCount += 1;
-      await animalView.save();
-    } else {
-      await new AnimalView({ animalId: animalId.toString(), viewCount: 1 }).save();
+    const { animalId, animalName } = req.body; // Assurez-vous de recevoir animalName
+  
+    try {
+      let animalView = await AnimalView.findOne({ animalId });
+  
+      if (animalView) {
+        animalView.viewCount += 1;
+        animalView.animalName = animalName; // Mettez à jour le nom de l'animal
+        await animalView.save();
+      } else {
+        animalView = new AnimalView({ animalId, animalName, viewCount: 1 });
+        await animalView.save();
+      }
+  
+      res.json(animalView);
+    } catch (error) {
+      res.status(500).json({ error: 'Erreur lors de l\'incrémentation des vues' });
     }
-
-    res.status(200).send('Consultation incrémentée avec succès');
-  } catch (error) {
-    console.error('Error incrementing consultations:', error);
-    res.status(500).send('Internal server error');
-  } finally {
-    // Retirer le verrou après un délai court
-    setTimeout(() => { delete requestLock[animalId]; }, 1000);
-  }
-});
+  });
 
 mongoose.connect(connectionString, {
     useNewUrlParser: true,
