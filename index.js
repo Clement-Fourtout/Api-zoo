@@ -715,11 +715,10 @@ app.post('/habitats', upload.single('image'), async (req, res) => {
 app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     const habitatId = req.params.id;
     const { name, description, animal_list } = req.body;
-    let imageUrl;
+    let imageUrl = null;
   
     try {
-
-      // Récupérer l'URL actuelle de l'image pour suppression si une nouvelle image est téléchargée
+      // Récupérer l'URL actuelle de l'image pour l'habitat
       const [currentHabitat] = await pool.query('SELECT imageUrl FROM habitats WHERE id = ?', [habitatId]);
   
       if (currentHabitat.length === 0) {
@@ -727,6 +726,16 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
       }
   
       const currentImageUrl = currentHabitat[0].imageUrl;
+  
+      // Si une nouvelle image est téléchargée, la traiter
+      if (req.file) {
+        imageUrl = req.file.location; // Utilisation de req.file.location pour obtenir l'URL de l'image téléchargée sur S3
+  
+        // Supprimer l'ancienne image de S3 si elle existe
+        if (currentImageUrl) {
+          await deleteImageFromS3(currentImageUrl);
+        }
+      }
   
       // Construction de la requête SQL pour mettre à jour l'habitat
       const updateValues = [name, description, animal_list];
@@ -747,11 +756,6 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
       // Vérifier si l'habitat a été mis à jour avec succès
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: 'Habitat non trouvé' });
-      }
-  
-      // Supprimer l'ancienne image de S3 si une nouvelle image est téléchargée
-      if (imageUrl && currentImageUrl) {
-        await deleteImageFromS3(currentImageUrl);
       }
   
       res.json({ message: 'Habitat mis à jour avec succès' });
