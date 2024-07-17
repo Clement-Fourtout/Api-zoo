@@ -720,7 +720,7 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     try {
       // Récupérer l'URL actuelle de l'image pour l'habitat
       const checkQuery = 'SELECT COUNT(*) AS count FROM habitats WHERE id = ?';
-      const [{ count }] = await pool.query(checkQuery, [habitatId]);
+      const { count } = await pool.query(checkQuery, [habitatId]);
   
       if (count === 0) {
         return res.status(404).json({ message: 'Habitat non trouvé' });
