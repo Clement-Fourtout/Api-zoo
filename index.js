@@ -593,7 +593,7 @@ app.put('/animals/:id', async (req, res) => {
       WHERE id = ?
     `;
   
-    db.query(query, [name, species, age, description, habitat_id, image, animalId], (err, results) => {
+    pool.query(query, [name, species, age, description, habitat_id, image, animalId], (err, results) => {
       if (err) {
         console.error('Erreur lors de la mise à jour de l\'animal:', err);
         return res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'animal', error: err });
