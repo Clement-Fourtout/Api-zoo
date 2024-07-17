@@ -626,7 +626,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         const result = await pool.query(getAnimalQuery, [animalId]);
 
         // Vérifier si un animal avec cet ID existe
-        if (result.length === 0) {
+        if (result.length === 0 || !result[0].image) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
