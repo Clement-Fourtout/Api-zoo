@@ -609,7 +609,7 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
+    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3 si une nouvelle image est téléchargée
 
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
@@ -620,6 +620,16 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
+
+        // Récupérer l'animal pour obtenir l'URL de l'image actuelle
+        const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
+        const [animal] = await pool.query(getAnimalQuery, [animalId]);
+
+        if (!animal) {
+            return res.status(404).json({ message: 'Animal non trouvé' });
+        }
+
+        const currentImageUrl = animal.image;
 
         // Construction de la requête SQL pour mettre à jour l'animal
         const updateValues = [name, species, age, description, habitat_id];
@@ -640,6 +650,19 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         // Vérifier si l'animal a été mis à jour avec succès
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
+        }
+
+        // Supprimer l'ancienne image de S3 si une nouvelle image a été téléchargée
+        if (imageUrl && currentImageUrl) {
+            const oldKey = currentImageUrl.split('/').pop(); // Obtenez le nom de fichier de l'URL actuelle
+
+            const params = {
+                Bucket: 'votre-bucket-s3',
+                Key: oldKey,
+            };
+
+            await s3.deleteObject(params).promise();
+            console.log(`Ancienne image ${oldKey} supprimée avec succès de S3.`);
         }
 
         res.json({ message: 'Animal mis à jour avec succès' });
