@@ -583,28 +583,43 @@ app.delete('/animals/:id', async (req, res) => {
     }
 });
 
-app.put('/animals/:id', async (req, res) => {
+app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
-    const { name, species, age, description, habitat_id, image } = req.body;
+    const { name, species, age, description, habitat_id } = req.body;
+    let imageUrl = ''; // Initialiser l'URL de l'image à vide
   
-    const query = `
-      UPDATE animals 
-      SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?, image = ?
-      WHERE id = ?
-    `;
-  
-    pool.query(query, [name, species, age, description, habitat_id, image, animalId], (err, results) => {
-      if (err) {
-        console.error('Erreur lors de la mise à jour de l\'animal:', err);
-        return res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'animal', error: err });
+    try {
+      // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
+      if (req.file) {
+        imageUrl = req.file.location; // URL de la nouvelle image dans S3
       }
   
-      if (results.affectedRows === 0) {
+      // Construction de la requête SQL pour mettre à jour l'animal
+      const updateValues = [name, species, age, description, habitat_id];
+      let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
+      
+      // Si imageUrl n'est pas vide, inclure l'image dans la requête SQL
+      if (imageUrl !== '') {
+        updateValues.push(imageUrl);
+        query += ', image = ?';
+      }
+  
+      query += ' WHERE id = ?';
+      updateValues.push(animalId);
+  
+      // Exécution de la requête SQL pour mettre à jour l'animal
+      const result = await pool.query(query, updateValues);
+  
+      // Vérifier si l'animal a été mis à jour avec succès
+      if (result.affectedRows === 0) {
         return res.status(404).json({ message: 'Animal non trouvé' });
       }
   
       res.json({ message: 'Animal mis à jour avec succès' });
-    });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'animal :', error);
+      res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
+    }
   });
 
 //Gestion des habitats
