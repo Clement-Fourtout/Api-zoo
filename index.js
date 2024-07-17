@@ -718,18 +718,14 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     let imageUrl = null;
   
     try {
-      // Récupérer l'URL actuelle de l'image pour l'habitat
-      const checkQuery = 'SELECT COUNT(*) AS count FROM habitats WHERE id = ?';
-      const { count } = await pool.query(checkQuery, [habitatId]);
+      const getQuery = 'SELECT imageUrl FROM habitats WHERE id = ?';
+      const [rows] = await pool.query(getQuery, [habitatId]);
   
-      if (count === 0) {
+      if (rows.length === 0) {
         return res.status(404).json({ message: 'Habitat non trouvé' });
       }
   
-      const getQuery = 'SELECT imageUrl FROM habitats WHERE id = ?';
-      const [currentHabitat] = await pool.query(getQuery, [habitatId]);
-  
-      const currentImageUrl = currentHabitat.length > 0 ? currentHabitat[0].imageUrl : null;
+      const currentImageUrl = rows[0].imageUrl;
   
       // Si une nouvelle image est téléchargée, la traiter
       if (req.file) {
@@ -768,6 +764,7 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'habitat' });
     }
   });
+  
 
 
 // Supprimer un habitat
