@@ -43,6 +43,9 @@ MongoClient.connect(connectionString, {
   });
 
 // Middleware pour parser le JSON
+const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json({ limit: '10mb' });
+app.use(jsonParser);
 app.use(express.json());
 app.use(bodyParser.json({limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
