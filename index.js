@@ -602,9 +602,9 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
         const checkQuery = 'SELECT COUNT(*) AS count FROM vetrecords WHERE animal_id = ?';
-        const [checkResult] = await pool.query(checkQuery, [animalId]);
+        const { count } = await pool.query(checkQuery, [animalId]);
 
-        if (checkResult.count > 0) {
+        if (count > 0) {
             // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
