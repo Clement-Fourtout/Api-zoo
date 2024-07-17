@@ -85,6 +85,7 @@ const upload = multer({
             cb(null, Date.now().toString() + '-' + file.originalname);
         },
     }),
+    limits: { fileSize: 1024 * 1024 * 10 },
 });
 const animalSchema = new mongoose.Schema({
     name: String,
