@@ -723,7 +723,7 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
         const uploadParams = {
           Bucket: process.env.AWS_S3_BUCKET,
           Key: `${Date.now()}-${req.file.originalname}`, // Utilisez un nom de fichier unique
-          Body: req.file.buffer,
+          Body: req.file.buffer, // Utilisez req.file.buffer pour le contenu du fichier
           ACL: 'public-read',
         };
   
