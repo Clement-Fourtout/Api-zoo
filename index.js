@@ -583,6 +583,23 @@ app.delete('/animals/:id', async (req, res) => {
     }
 });
 
+app.put('animals/:id', async (req, res) => {
+    try {
+      const animalId = req.params.id;
+      const updateData = req.body;
+  
+      // Trouver l'animal par ID et mettre à jour avec les nouvelles données
+      const updatedAnimal = await Animal.findByIdAndUpdate(animalId, updateData, { new: true });
+  
+      if (!updatedAnimal) {
+        return res.status(404).json({ message: 'Animal non trouvé' });
+      }
+  
+      res.json(updatedAnimal);
+    } catch (error) {
+      res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'animal', error });
+    }
+  });
 
 //Gestion des habitats
 app.get('/habitats', (req, res) => { 
