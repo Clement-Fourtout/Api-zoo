@@ -49,9 +49,16 @@ app.use(bodyParser.json({limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors());
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
+    if (err instanceof multer.MulterError) {
+      // Gestion des erreurs spécifiques à Multer
+      console.error('Erreur Multer :', err);
+      res.status(500).json({ error: 'Erreur serveur lors de l\'upload de l\'image' });
+    } else {
+      // Gestion des autres erreurs
+      console.error('Erreur générale :', err);
+      res.status(500).json({ error: 'Erreur serveur inattendue' });
+    }
+  });
 
 const pool = mysql.createPool(process.env.JAWSDB_URL)
 
