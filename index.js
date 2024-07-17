@@ -609,25 +609,26 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3 si une nouvelle image est téléchargée
+    const newImageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3 si une nouvelle image est téléchargée
 
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
         const checkQuery = 'SELECT COUNT(*) AS count FROM vetrecords WHERE animal_id = ?';
-        const { count } = await pool.query(checkQuery, [animalId]);
+        const [checkResult] = await pool.query(checkQuery, [animalId]);
+        const count = checkResult[0].count;
 
         if (count > 0) {
             // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
 
-        // Récupérer l'animal à mettre à jour
+        // Récupérer l'URL de l'image actuelle de l'animal
         const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
         const [animalResult] = await pool.query(getAnimalQuery, [animalId]);
         const currentImageUrl = animalResult.length > 0 ? animalResult[0].image : null;
 
         // Si une nouvelle image est téléchargée, supprimer l'ancienne image de S3
-        if (imageUrl && currentImageUrl) {
+        if (newImageUrl && currentImageUrl) {
             await deleteImageFromS3(currentImageUrl);
         }
 
@@ -635,9 +636,9 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         const updateValues = [name, species, age, description, habitat_id];
         let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
 
-        // Ajouter l'image à la requête SQL si imageUrl est défini
-        if (imageUrl) {
-            updateValues.push(imageUrl);
+        // Ajouter l'image à la requête SQL si newImageUrl est défini
+        if (newImageUrl) {
+            updateValues.push(newImageUrl);
             query += ', image = ?';
         }
 
@@ -645,10 +646,10 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         updateValues.push(animalId);
 
         // Exécution de la requête SQL pour mettre à jour l'animal
-        const result = await pool.query(query, updateValues);
+        const [updateResult] = await pool.query(query, updateValues);
 
         // Vérifier si l'animal a été mis à jour avec succès
-        if (result.affectedRows === 0) {
+        if (updateResult.affectedRows === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
