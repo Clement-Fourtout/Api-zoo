@@ -563,7 +563,7 @@ async function deleteAnimalViews(animalId) {
 
 app.delete('/animals/:id', async (req, res) => {
     const { id } = req.params;
-  
+    const animalId = req.params.id;
     try {
         // Récupérer l'URL de l'image depuis la base de données
         const querySelect = 'SELECT image FROM animals WHERE id = ?';
