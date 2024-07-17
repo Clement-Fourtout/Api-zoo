@@ -715,42 +715,64 @@ app.post('/habitats', upload.single('image'), async (req, res) => {
 app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     const habitatId = req.params.id;
     const { name, description, animal_list } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
+    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3
 
     try {
-        // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
-        const checkQuery = 'SELECT * FROM habitats WHERE id = ?';
-        const { count } = await pool.query(checkQuery, [habitatId]);
+        // Récupérer l'URL de l'image actuelle de l'habitat depuis la base de données
+        const querySelect = 'SELECT image FROM habitats WHERE id = ?';
+        pool.query(querySelect, [habitatId], async (err, rows) => {
+            if (err) {
+                console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
+                return res.status(500).json({ error: 'Erreur serveur lors de la récupération de l\'image' });
+            }
 
-        if (count === 0) {
-            // Si des enregistrements vétérinaires existent, retourner une erreur 409
-            return res.status(409).json({ error: 'Habitat non trouvé' });
-        }
+            // Vérifier si aucune entrée n'est trouvée
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Habitat non trouvé' });
+            }
 
-        // Construction de la requête SQL pour mettre à jour l'animal
-        const updateValues = [name, description, animal_list];
-        let query = 'UPDATE habitats SET name = ?, description = ?, animal_list = ?';
+            const currentImageUrl = rows[0].image;
 
-        // Ajouter l'image à la requête SQL si imageUrl est défini
-        if (imageUrl) {
-            updateValues.push(imageUrl);
-            query += ', image = ?';
-        }
+            // Supprimer l'ancienne image de S3 si une nouvelle image est téléchargée
+            if (imageUrl && currentImageUrl) {
+                try {
+                    await deleteImageFromS3(currentImageUrl);
+                } catch (error) {
+                    console.error(`Erreur lors de la suppression de l'ancienne image de S3 : ${error.message}`);
+                    return res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'ancienne image de S3' });
+                }
+            }
 
-        query += ' WHERE id = ?';
-        updateValues.push(habitatId);
+            // Construction de la requête SQL pour mettre à jour l'habitat
+            const updateValues = [name, description, animal_list];
+            let queryUpdate = 'UPDATE habitats SET name = ?, description = ?, animal_list = ?';
 
-        // Exécution de la requête SQL pour mettre à jour l'animal
-        const result = await pool.query(query, updateValues);
+            // Ajouter la nouvelle image à la requête SQL si imageUrl est défini
+            if (imageUrl) {
+                updateValues.push(imageUrl);
+                queryUpdate += ', image = ?';
+            }
 
-        // Vérifier si l'animal a été mis à jour avec succès
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'habitat non trouvé' });
-        }
+            queryUpdate += ' WHERE id = ?';
+            updateValues.push(habitatId);
 
-        res.json({ message: 'Habitat mis à jour avec succès' });
+            // Exécuter la requête SQL pour mettre à jour l'habitat
+            pool.query(queryUpdate, updateValues, (err, result) => {
+                if (err) {
+                    console.error(`Erreur lors de la mise à jour de l'habitat : ${err.message}`);
+                    return res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'habitat' });
+                }
+
+                // Vérifier si l'habitat a été mis à jour avec succès
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: 'Habitat non trouvé' });
+                }
+
+                res.json({ message: 'Habitat mis à jour avec succès' });
+            });
+        });
     } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'habitat :', error);
+        console.error(`Erreur lors de la mise à jour de l'habitat : ${error.message}`);
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'habitat' });
     }
 });
