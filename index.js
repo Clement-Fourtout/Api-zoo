@@ -609,7 +609,7 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
+    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3 si une nouvelle image est téléchargée
 
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
@@ -619,6 +619,21 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         if (count > 0) {
             // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
+        }
+
+        // Récupérer l'animal existant pour obtenir l'image actuelle
+        const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
+        const [animalResult] = await pool.query(getAnimalQuery, [animalId]);
+
+        if (!animalResult || animalResult.length === 0) {
+            return res.status(404).json({ message: 'Animal non trouvé' });
+        }
+
+        const currentImageUrl = animalResult[0].image;
+
+        // Si imageUrl est défini et différent de l'URL actuelle, supprimer l'ancienne image de S3
+        if (imageUrl && imageUrl !== currentImageUrl) {
+            await deleteImageFromS3(currentImageUrl);
         }
 
         // Construction de la requête SQL pour mettre à jour l'animal
