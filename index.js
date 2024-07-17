@@ -597,44 +597,39 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // Initialiser l'URL de l'image à vide
-  
+    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
+
     try {
-        // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
-        if (req.file) {
-            imageUrl = req.file.location; // URL de la nouvelle image dans S3
-        }
-  
-        // Vérifier les dépendances dans vetrecords
+        // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
         const checkQuery = 'SELECT COUNT(*) AS count FROM vetrecords WHERE animal_id = ?';
         const [checkResult] = await pool.query(checkQuery, [animalId]);
 
         if (checkResult.count > 0) {
-            // Si des enregistrements existent dans vetrecords, gérer la situation (par exemple, renvoyer une erreur)
+            // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
 
         // Construction de la requête SQL pour mettre à jour l'animal
         const updateValues = [name, species, age, description, habitat_id];
         let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
-      
-        // Si imageUrl n'est pas vide, inclure l'image dans la requête SQL
+
+        // Ajouter l'image à la requête SQL si imageUrl est défini
         if (imageUrl) {
             updateValues.push(imageUrl);
             query += ', image = ?';
         }
-  
+
         query += ' WHERE id = ?';
         updateValues.push(animalId);
-  
+
         // Exécution de la requête SQL pour mettre à jour l'animal
         const result = await pool.query(query, updateValues);
-  
+
         // Vérifier si l'animal a été mis à jour avec succès
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
-  
+
         res.json({ message: 'Animal mis à jour avec succès' });
     } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'animal :', error);
