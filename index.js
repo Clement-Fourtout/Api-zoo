@@ -6,6 +6,7 @@ const multerS3 = require('multer-s3');
 const fs = require('fs');
 const express = require('express');
 const app = express();
+const pool = require('./db');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql');
