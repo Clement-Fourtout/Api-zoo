@@ -609,7 +609,7 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3 si une nouvelle image est téléchargée
+    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
 
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
@@ -619,14 +619,6 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         if (count > 0) {
             // Si des enregistrements vétérinaires existent, retourner une erreur 409
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
-        }
-
-        // Vérifier si l'animal existe avant de le mettre à jour
-        const getAnimalQuery = 'SELECT id FROM animals WHERE id = ?';
-        const [animalResult] = await pool.query(getAnimalQuery, [animalId]);
-
-        if (!animalResult || animalResult.length === 0) {
-            return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
         // Construction de la requête SQL pour mettre à jour l'animal
@@ -643,10 +635,10 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         updateValues.push(animalId);
 
         // Exécution de la requête SQL pour mettre à jour l'animal
-        const updateResult = await pool.query(query, updateValues);
+        const result = await pool.query(query, updateValues);
 
         // Vérifier si l'animal a été mis à jour avec succès
-        if (updateResult.affectedRows === 0) {
+        if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
@@ -656,9 +648,6 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
 });
-
-
-
   
 
 //Gestion des habitats
