@@ -541,7 +541,7 @@ app.get('/animals', (req, res) => {
         }
     });
 });
-
+// Supprimer un animal de la BDD et l'image de S3
 app.delete('/animals/:id', async (req, res) => {
     const { id } = req.params;
   
@@ -585,11 +585,11 @@ app.delete('/animals/:id', async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la suppression de lanimal' });
     }
 });
-
+//Modifier un Animal
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = ''; // Initialiser l'URL de l'image à vide
+    const imageUrl = req.file ? req.file.location : undefined; // Initialiser l'URL de l'image à vide
   
     try {
       // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
