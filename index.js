@@ -44,7 +44,8 @@ MongoClient.connect(connectionString, {
 
 // Middleware pour parser le JSON
 app.use(express.json());
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors());
 app.use((err, req, res, next) => {
     console.error(err.stack);
