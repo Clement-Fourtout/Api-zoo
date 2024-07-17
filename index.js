@@ -595,64 +595,43 @@ app.delete('/animals/:id', async (req, res) => {
 });
 //Modifier un Animal
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
-    const { id } = req.params;
+    const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    let imageUrl = req.file ? req.file.location : undefined; // URL de la nouvelle image dans S3
+    let imageUrl = req.file ? req.file.location : undefined; // Initialiser l'URL de l'image à vide
   
     try {
-      // Récupérer l'URL de l'image actuelle depuis la base de données
-      const querySelect = 'SELECT image FROM animals WHERE id = ?';
-      pool.query(querySelect, [id], async (err, rows, fields) => {
-        if (err) {
-          console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
-          throw err;
-        }
+      // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
+      if (req.file) {
+        imageUrl = req.file.location; // URL de la nouvelle image dans S3
+      }
   
-        // Vérifier si aucune entrée n'est trouvée
-        if (rows.length === 0) {
-          return res.status(404).json({ message: 'Animal non trouvé' });
-        }
+      // Construction de la requête SQL pour mettre à jour l'animal
+      const updateValues = [name, species, age, description, habitat_id];
+      let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
+      
+      // Si imageUrl n'est pas vide, inclure l'image dans la requête SQL
+      if (imageUrl) {
+        updateValues.push(imageUrl);
+        query += ', image = ?';
+      }
   
-        const currentImageUrl = rows[0].image;
+      query += ' WHERE id = ?';
+      updateValues.push(animalId);
   
-        // Construction de la requête SQL pour mettre à jour l'animal
-        const updateValues = [name, species, age, description, habitat_id];
-        let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
-        
-        // Si imageUrl n'est pas vide (nouvelle image téléchargée), inclure l'image dans la requête SQL
-        if (imageUrl) {
-          updateValues.push(imageUrl);
-          query += ', image = ?';
-        }
+      // Exécution de la requête SQL pour mettre à jour l'animal
+      const result = await pool.query(query, updateValues);
   
-        query += ' WHERE id = ?';
-        updateValues.push(id);
+      // Vérifier si l'animal a été mis à jour avec succès
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'Animal non trouvé' });
+      }
   
-        // Exécution de la requête SQL pour mettre à jour l'animal
-        pool.query(query, updateValues, async (err, result) => {
-          if (err) {
-            console.error(`Erreur lors de la mise à jour de l'animal : ${err.message}`);
-            return res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
-          }
-  
-          // Si une nouvelle image a été téléchargée, supprimer l'ancienne image de S3
-          if (imageUrl && currentImageUrl) {
-            try {
-              await deleteImageFromS3(currentImageUrl);
-            } catch (error) {
-              console.error(`Erreur lors de la suppression de l'ancienne image : ${error.message}`);
-              // Gérer l'erreur de suppression si nécessaire
-            }
-          }
-  
-          res.json({ message: 'Animal mis à jour avec succès' });
-        });
-      });
+      res.json({ message: 'Animal mis à jour avec succès' });
     } catch (error) {
-      console.error(`Erreur lors de la mise à jour de l'animal : ${error.message}`);
+      console.error('Erreur lors de la mise à jour de l\'animal :', error);
       res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
-  });
+});
   
 
 //Gestion des habitats
