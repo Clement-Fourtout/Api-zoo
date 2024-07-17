@@ -583,22 +583,28 @@ app.delete('/animals/:id', async (req, res) => {
     }
 });
 
-app.put('animals/:id', async (req, res) => {
-    try {
-      const animalId = req.params.id;
-      const updateData = req.body;
+app.put('/animals/:id', async (req, res) => {
+    const animalId = req.params.id;
+    const { name, species, age, description, habitat_id, image } = req.body;
   
-      // Trouver l'animal par ID et mettre à jour avec les nouvelles données
-      const updatedAnimal = await Animal.findByIdAndUpdate(animalId, updateData, { new: true });
+    const query = `
+      UPDATE animals 
+      SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?, image = ?
+      WHERE id = ?
+    `;
   
-      if (!updatedAnimal) {
+    db.query(query, [name, species, age, description, habitat_id, image, animalId], (err, results) => {
+      if (err) {
+        console.error('Erreur lors de la mise à jour de l\'animal:', err);
+        return res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'animal', error: err });
+      }
+  
+      if (results.affectedRows === 0) {
         return res.status(404).json({ message: 'Animal non trouvé' });
       }
   
-      res.json(updatedAnimal);
-    } catch (error) {
-      res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'animal', error });
-    }
+      res.json({ message: 'Animal mis à jour avec succès' });
+    });
   });
 
 //Gestion des habitats
