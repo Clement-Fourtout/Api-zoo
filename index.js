@@ -550,6 +550,17 @@ app.get('/animals', (req, res) => {
     });
 });
 // Supprimer un animal de la BDD et l'image de S3
+async function deleteAnimalViews(animalId) {
+    try {
+      // Supprimez toutes les entrées dans MongoDB où animalId correspond
+      const result = await AnimalView.deleteMany({ animalId: animalId.toString() });
+      console.log(`Suppression des vues d'animal pour animalId ${animalId}: ${result.deletedCount} entrées supprimées.`);
+    } catch (error) {
+      console.error('Erreur lors de la suppression des vues d\'animal:', error);
+      // Gérez l'erreur selon vos besoins
+    }
+  }
+
 app.delete('/animals/:id', async (req, res) => {
     const { id } = req.params;
   
@@ -571,6 +582,7 @@ app.delete('/animals/:id', async (req, res) => {
   
             try {
                 await deleteImageFromS3(imageUrl);
+                await deleteAnimalViews(animalId);
 
                 // Supprimer le service depuis la base de données
                 const queryDelete = 'DELETE FROM animals WHERE id = ?';
@@ -930,6 +942,7 @@ app.post('/animalviews', async (req, res) => {
     setTimeout(() => { delete requestLock[animalId]; }, 1000);
   }
 });
+
 
 mongoose.connect(connectionString, {
     useNewUrlParser: true,
