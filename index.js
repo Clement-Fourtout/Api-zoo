@@ -597,7 +597,7 @@ app.delete('/animals/:id', async (req, res) => {
 app.put('/animals/:id', upload.single('image'), async (req, res) => {
     const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    const imageUrl = req.file ? req.file.location : undefined; // Initialiser l'URL de l'image à vide
+    let imageUrl = req.body.image; // Récupérer l'URL actuelle de l'image
   
     try {
       // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
@@ -608,9 +608,9 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
       // Construction de la requête SQL pour mettre à jour l'animal
       const updateValues = [name, species, age, description, habitat_id];
       let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
-      
+  
       // Si imageUrl n'est pas vide, inclure l'image dans la requête SQL
-      if (imageUrl !== '') {
+      if (imageUrl) {
         updateValues.push(imageUrl);
         query += ', image = ?';
       }
@@ -632,6 +632,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
   });
+  
 
 //Gestion des habitats
 app.get('/habitats', (req, res) => { 
