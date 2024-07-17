@@ -594,38 +594,44 @@ app.delete('/animals/:id', async (req, res) => {
     }
 });
 //Modifier un Animal
-app.put('/animals/:id', async (req, res) => {
-    const { id } = req.params;
+app.put('/animals/:id', upload.single('image'), async (req, res) => {
+    const animalId = req.params.id;
     const { name, species, age, description, habitat_id } = req.body;
-    const imageUrl = req.file ? req.file.location : null; // Nouvelle URL de l'image dans S3, si une nouvelle image est fournie
+    let imageUrl = req.file ? req.file.location : undefined; // Initialiser l'URL de l'image à vide
   
     try {
-      // Récupérer l'URL de l'image actuelle depuis la base de données de manière synchrone avec await
-      const [rows] = await pool.query('SELECT image FROM animals WHERE id = ?', [id]);
+      // Si une nouvelle image est téléchargée, mettre à jour l'URL de l'image dans S3
+      if (req.file) {
+        imageUrl = req.file.location; // URL de la nouvelle image dans S3
+      }
   
-      if (rows.length === 0) {
+      // Construction de la requête SQL pour mettre à jour l'animal
+      const updateValues = [name, species, age, description, habitat_id];
+      let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
+      
+      // Si imageUrl n'est pas vide, inclure l'image dans la requête SQL
+      if (imageUrl) {
+        updateValues.push(imageUrl);
+        query += ', image = ?';
+      }
+  
+      query += ' WHERE id = ?';
+      updateValues.push(animalId);
+  
+      // Exécution de la requête SQL pour mettre à jour l'animal
+      const result = await pool.query(query, updateValues);
+  
+      // Vérifier si l'animal a été mis à jour avec succès
+      if (result.affectedRows === 0) {
         return res.status(404).json({ message: 'Animal non trouvé' });
       }
   
-      const currentImageUrl = rows[0].image;
-  
-      // Supprimer l'image actuelle depuis S3 si une nouvelle image est fournie
-      if (imageUrl && currentImageUrl) {
-        await deleteImageFromS3(currentImageUrl); // Assurez-vous que cette fonction est correctement implémentée
-      }
-  
-      // Mettre à jour les données de l'animal dans la base de données
-      const [result] = await pool.query('UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?, image = ? WHERE id = ?', [name, species, age, description, habitat_id, imageUrl, id]);
-  
-      console.log(`Animal avec l'ID ${id} mis à jour avec succès`);
-      res.status(200).json({ message: 'Animal mis à jour avec succès' });
-  
+      res.json({ message: 'Animal mis à jour avec succès' });
     } catch (error) {
-      console.error(`Erreur lors de la mise à jour de l'animal : ${error.message}`);
+      console.error('Erreur lors de la mise à jour de l\'animal :', error);
       res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
-  });
-  
+});
   
 
 //Gestion des habitats
