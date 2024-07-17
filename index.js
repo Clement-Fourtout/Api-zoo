@@ -713,13 +713,13 @@ app.post('/habitats', upload.single('image'), async (req, res) => {
 
 // Mettre à jour un habitat
 app.put('/habitats/:id', upload.single('image'), async (req, res) => {
-    const animalId = req.params.id;
+    const habitatId = req.params.id;
     const { name, description, animal_list } = req.body;
     let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
 
     try {
         // Vérifier s'il y a des enregistrements vétérinaires associés à cet animal
-        const checkQuery = 'SELECT COUNT(*) AS count FROM habitats WHERE id = ?';
+        const checkQuery = 'SELECT * FROM habitats WHERE id = ?';
         const { count } = await pool.query(checkQuery, [habitatId]);
 
         if (count === 0) {
