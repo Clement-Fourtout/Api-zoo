@@ -720,24 +720,26 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     try {
       // Vérifier s'il y a des enregistrements d'habitats associés à cet habitat
       const checkQuery = 'SELECT COUNT(*) AS count FROM habitats WHERE id = ?';
-      const { count } = await pool.query(checkQuery, [habitatId]);
+      const countResult = await pool.query(checkQuery, [habitatId]);
+      const count = countResult[0].count;
   
       if (count === 0) {
         return res.status(404).json({ message: 'Habitat non trouvé' });
       }
   
-      const getQuery = 'SELECT imageUrl FROM habitats WHERE id = ?';
-      const [habitatResult] = await pool.query(getQuery, [habitatId]);
-      const currentImageUrl = habitatResult[0].imageUrl;
-  
-      // Si une nouvelle image est téléchargée, la traiter
+      // Récupérer l'URL de l'image actuelle si une nouvelle image est téléchargée
       if (req.file) {
-        imageUrl = req.file.location; // Utilisation de req.file.location pour obtenir l'URL de l'image téléchargée sur S3
+        const getImageQuery = 'SELECT imageUrl FROM habitats WHERE id = ?';
+        const imageResult = await pool.query(getImageQuery, [habitatId]);
+        const currentImageUrl = imageResult[0].imageUrl;
   
         // Supprimer l'ancienne image de S3 si elle existe
         if (currentImageUrl) {
           await deleteImageFromS3(currentImageUrl);
         }
+  
+        // Utiliser l'URL de la nouvelle image téléchargée depuis S3
+        imageUrl = req.file.location;
       }
   
       // Construction de la requête SQL pour mettre à jour l'habitat
@@ -767,6 +769,7 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'habitat' });
     }
   });
+  
   
   
 
