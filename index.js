@@ -658,7 +658,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             const oldKey = currentImageUrl.split('/').pop(); // Obtenez le nom de fichier de l'URL actuelle
 
             const params = {
-                Bucket: 'votre-bucket-s3',
+                Bucket: process.env.AWS_S3_BUCKET,
                 Key: oldKey,
             };
 
