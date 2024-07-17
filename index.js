@@ -621,21 +621,6 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
 
-        // Récupérer l'animal existant pour obtenir l'image actuelle
-        const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
-        const [animalResult] = await pool.query(getAnimalQuery, [animalId]);
-
-        if (!animalResult || animalResult.length === 0) {
-            return res.status(404).json({ message: 'Animal non trouvé' });
-        }
-
-        const currentImageUrl = animalResult[0].image;
-
-        // Si imageUrl est défini et différent de l'URL actuelle, supprimer l'ancienne image de S3
-        if (imageUrl && imageUrl !== currentImageUrl) {
-            await deleteImageFromS3(currentImageUrl);
-        }
-
         // Construction de la requête SQL pour mettre à jour l'animal
         const updateValues = [name, species, age, description, habitat_id];
         let query = 'UPDATE animals SET name = ?, species = ?, age = ?, description = ?, habitat_id = ?';
@@ -657,12 +642,18 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
+        // Si imageUrl est défini, supprimer l'ancienne image de S3
+        if (imageUrl) {
+            await deleteImageFromS3(imageUrl);
+        }
+
         res.json({ message: 'Animal mis à jour avec succès' });
     } catch (error) {
         console.error('Erreur lors de la mise à jour de l\'animal :', error);
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
 });
+
   
 
 //Gestion des habitats
