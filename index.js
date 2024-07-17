@@ -623,13 +623,14 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
 
         // Récupérer l'animal pour obtenir l'URL de l'image actuelle
         const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
-        const [animal] = await pool.query(getAnimalQuery, [animalId]);
+        const result = await pool.query(getAnimalQuery, [animalId]);
 
-        if (!animal) {
+        // Vérifier si un animal avec cet ID existe
+        if (result.length === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
-        const currentImageUrl = animal.image;
+        const currentImageUrl = result[0].image;
 
         // Construction de la requête SQL pour mettre à jour l'animal
         const updateValues = [name, species, age, description, habitat_id];
@@ -645,10 +646,10 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         updateValues.push(animalId);
 
         // Exécution de la requête SQL pour mettre à jour l'animal
-        const result = await pool.query(query, updateValues);
+        const updateResult = await pool.query(query, updateValues);
 
         // Vérifier si l'animal a été mis à jour avec succès
-        if (result.affectedRows === 0) {
+        if (updateResult.affectedRows === 0) {
             return res.status(404).json({ message: 'Animal non trouvé' });
         }
 
@@ -657,7 +658,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             const oldKey = currentImageUrl.split('/').pop(); // Obtenez le nom de fichier de l'URL actuelle
 
             const params = {
-                Bucket: 'votre-bucket-s3',
+                Bucket: process.env.AWS_S3_BUCKET,
                 Key: oldKey,
             };
 
@@ -671,6 +672,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
 });
+
   
 
 //Gestion des habitats
