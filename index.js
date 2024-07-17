@@ -621,13 +621,13 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             return res.status(409).json({ error: 'Cet animal est associé à des enregistrements vétérinaires et ne peut pas être modifié pour le moment.' });
         }
 
-        // Récupérer l'animal pour obtenir l'URL de l'image actuelle
+        // Récupérer l'animal pour obtenir l'image actuelle
         const getAnimalQuery = 'SELECT image FROM animals WHERE id = ?';
         const result = await pool.query(getAnimalQuery, [animalId]);
 
-        // Vérifier si un animal avec cet ID existe
-        if (result.length === 0 || !result[0].image) {
-            return res.status(404).json({ message: 'Animal non trouvé' });
+        // Vérifier si un animal avec cet ID existe et a une image définie
+        if (result.length === 0 || !result[0] || !result[0].image) {
+            return res.status(404).json({ message: 'Animal non trouvé ou image non définie' });
         }
 
         const currentImageUrl = result[0].image;
@@ -658,7 +658,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
             const oldKey = currentImageUrl.split('/').pop(); // Obtenez le nom de fichier de l'URL actuelle
 
             const params = {
-                Bucket: process.env.AWS_S3_BUCKET,
+                Bucket: 'votre-bucket-s3',
                 Key: oldKey,
             };
 
@@ -672,6 +672,7 @@ app.put('/animals/:id', upload.single('image'), async (req, res) => {
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'animal' });
     }
 });
+
 
   
 
