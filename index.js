@@ -718,13 +718,7 @@ app.put('/habitats/:id', upload.single('image'), async (req, res) => {
     let imageUrl;
   
     try {
-      // Si une nouvelle image est téléchargée, téléchargez-la sur S3 et obtenez l'URL
 
-  
-        const uploadResult = await s3.upload(uploadParams).promise();
-        imageUrl = uploadResult.Location;
-      
-  
       // Récupérer l'URL actuelle de l'image pour suppression si une nouvelle image est téléchargée
       const [currentHabitat] = await pool.query('SELECT imageUrl FROM habitats WHERE id = ?', [habitatId]);
   
