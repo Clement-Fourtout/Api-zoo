@@ -370,6 +370,28 @@ app.get('/services', (req, res) => {
     });
 });
 
+app.get('/services/:id', async (req, res) => {
+    const serviceId = req.params.id;
+    try {
+        const query = 'SELECT * FROM services WHERE id = ?';
+        pool.query(query, [serviceId], (err, rows) => {
+            if (err) {
+                console.error(`Erreur lors de la récupération du service : ${err.message}`);
+                return res.status(500).json({ error: 'Erreur serveur lors de la récupération du service' });
+            }
+
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Service non trouvé' });
+            }
+
+            res.json(rows[0]);
+        });
+    } catch (error) {
+        console.error('Erreur lors de la récupération du service :', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la récupération du service' });
+    }
+});
+
   // Ajout d'un service
   app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
