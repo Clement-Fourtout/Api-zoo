@@ -422,7 +422,7 @@ app.get('/services', (req, res) => {
             }
 
             // Construction de la requête SQL pour mettre à jour le service
-            const updateValues = [name, description, image_url];
+            const updateValues = [title, description, image_url];
             let queryUpdate = 'UPDATE services SET title = ?, description = ?, image_url = ?';
 
             // Ajouter la nouvelle image à la requête SQL si imageUrl est défini
