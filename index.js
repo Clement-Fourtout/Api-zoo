@@ -390,7 +390,7 @@ app.get('/services', (req, res) => {
   
   // Mettre à jour un service existant
   app.put('/services/:id', upload.single('image'), async (req, res) => {
-    const servicesID = req.params.id;
+    const serviceID = req.params.id;
     const { name, description, image_url } = req.body;
     let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
 
@@ -398,7 +398,7 @@ app.get('/services', (req, res) => {
 
         // Récupérer l'URL de l'image actuelle du service depuis la base de données
         const querySelect = 'SELECT image FROM services WHERE id = ?';
-        pool.query(querySelect, [servicesID], async (err, rows) => {
+        pool.query(querySelect, [serviceID], async (err, rows) => {
             if (err) {
                 console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
                 return res.status(500).json({ error: 'Erreur serveur lors de la récupération de l\'image' });
@@ -432,7 +432,7 @@ app.get('/services', (req, res) => {
             }
 
             queryUpdate += ' WHERE id = ?';
-            updateValues.push(servicesID);
+            updateValues.push(serviceID);
 
             // Exécuter la requête SQL pour mettre à jour le service
             pool.query(queryUpdate, updateValues, (err, result) => {
