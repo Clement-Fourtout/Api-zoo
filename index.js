@@ -397,7 +397,7 @@ app.get('/services', (req, res) => {
     try {
 
         // Récupérer l'URL de l'image actuelle du service depuis la base de données
-        const querySelect = 'SELECT image FROM services WHERE id = ?';
+        const querySelect = 'SELECT image_url FROM services WHERE id = ?';
         pool.query(querySelect, [serviceID], async (err, rows) => {
             if (err) {
                 console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
@@ -409,7 +409,7 @@ app.get('/services', (req, res) => {
                 return res.status(404).json({ message: 'Service non trouvé' });
             }
 
-            const currentImageUrl = rows[0].image;
+            const currentImageUrl = rows[0].image_url;
 
             // Supprimer l'ancienne image de S3 si une nouvelle image est téléchargée
             if (imageUrl && currentImageUrl) {
