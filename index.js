@@ -250,6 +250,9 @@ app.post('/register', async (req, res) => {
     }
 });
 
+
+
+// Mettre un avis
 app.post('/submit-review', (req, res) => {
     const { pseudo, avis } = req.body;
 
@@ -265,6 +268,8 @@ app.post('/submit-review', (req, res) => {
     });
 });
 
+
+// Gestion des avis dans la page admin
 app.get('/avis_attente', (req, res) => {
     const query = 'SELECT * FROM avis_attente';
     pool.query(query, (err, result) => {
@@ -321,7 +326,7 @@ app.post('/avis_rejeter', (req, res) => {
             console.error('Erreur lors de la sélection de l\'avis :', err);
             return res.status(500).json({ message: 'Erreur lors de la sélection de l\'avis' });
         }
-        const avis = result[0]; // MySQL renvoie un tableau d'objets rows
+        const avis = result[0];
         pool.query(queryInsert, [avis.pseudo, avis.avis], (err) => {
             if (err) {
                 console.error('Erreur lors de l\'insertion de l\'avis rejeté :', err);
@@ -352,6 +357,39 @@ app.get('/avis_valides', (req, res) => {
     });
 });
 
+
+
+// Gestion des horaires
+app.get('/horaires', (req, res) => {
+    const sql = 'SELECT * FROM Horaires';
+  
+    connection.query(sql, (error, results) => {
+      if (error) {
+        console.error('Erreur lors de la récupération des horaires :', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la récupération des horaires' });
+      } else {
+        res.status(200).json(results);
+      }
+    });
+  });
+// Mettre à jour un horaire par son ID
+app.put('/horaires/:id', (req, res) => {
+    const { id } = req.params;
+    const { jour, heures } = req.body;
+  
+    const sql = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
+    const values = [jour, heures, id];
+  
+    connection.query(sql, values, (error, result) => {
+      if (error) {
+        console.error('Erreur lors de la mise à jour de l\'horaire :', error);
+        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'horaire' });
+      } else {
+        res.status(200).json({ message: 'Horaire mis à jour avec succès' });
+      }
+    });
+  });
+  
 // Suppression d'un service + Image sur Bucket S3
 async function deleteImageFromS3(imageUrl) {
     try {
@@ -390,6 +428,7 @@ function deleteImageFromS3(imageUrl) {
         });
     });
 }
+
 
 
 // Partie gestion des services
