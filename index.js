@@ -361,9 +361,9 @@ app.get('/avis_valides', (req, res) => {
 
 // Gestion des horaires
 app.get('/horaires', (req, res) => {
-    const sql = 'SELECT * FROM Horaires';
+    const query = 'SELECT * FROM Horaires';
   
-    connection.query(sql, (error, results) => {
+    pool.query(query, (error, results) => {
       if (error) {
         console.error('Erreur lors de la récupération des horaires :', error);
         res.status(500).json({ message: 'Erreur serveur lors de la récupération des horaires' });
@@ -377,10 +377,10 @@ app.put('/horaires/:id', (req, res) => {
     const { id } = req.params;
     const { jour, heures } = req.body;
   
-    const sql = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
+    const pool = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
     const values = [jour, heures, id];
   
-    connection.query(sql, values, (error, result) => {
+    pool.query(query, values, (error, result) => {
       if (error) {
         console.error('Erreur lors de la mise à jour de l\'horaire :', error);
         res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'horaire' });
