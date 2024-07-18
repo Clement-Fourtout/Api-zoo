@@ -194,10 +194,7 @@ app.get('/roles', (req, res) => {
       res.json(roles); // Renvoie la liste des rôles disponibles
     });
   });
-  $allowedRoles = ['employé', 'vétérinaire'];
-  if (!in_array($role, $allowedRoles)) {
-    // Retourner une erreur ou une réponse indiquant que le rôle n'est pas valide
-  }
+
 app.post('/register', async (req, res) => {
     const { nom, role, email} = req.body;
 
