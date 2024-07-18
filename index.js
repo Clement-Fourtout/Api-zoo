@@ -351,25 +351,48 @@ app.get('/avis_valides', (req, res) => {
         return res.status(200).json(result);
     });
 });
-// Récupération des services 
-app.get('/services', (req, res) => {
-    pool.query('SELECT * FROM services', (err, results) => {
-        if (err) {
-            console.error('Erreur lors de la récupération des services :', err);
-            res.status(500).json({ error: 'Erreur serveur lors de la récupération des services' });
-        } else {
-            // Ajuster chaque résultat pour inclure l'URL complète de l'image
-            const servicesWithImageUrl = results.map(service => {
-                return {
-                    ...service,
-                    image_url: service.image_url // Assurez-vous que service.image_url est déjà une URL complète
-                };
-            });
-            res.json(servicesWithImageUrl);
-        }
-    });
-});
 
+// Suppression d'un service + Image sur Bucket S3
+async function deleteImageFromS3(imageUrl) {
+    try {
+        const key = imageUrl.split('/').pop(); // Récupère le nom du fichier depuis l'URL
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key,
+        };
+
+        await s3.deleteObject(params).promise();
+        console.log(`Image ${key} supprimée avec succès de S3`);
+    } catch (err) {
+        console.error(`Erreur lors de la suppression de l'image depuis S3 : ${err.message}`);
+        throw err;
+    }
+}
+
+function deleteImageFromS3(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const decodedUrl = decodeURIComponent(imageUrl); // Décoder l'URL si nécessaire
+        const key = decodedUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
+
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key
+        };
+
+        s3.deleteObject(params, (err, data) => {
+            if (err) {
+                console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
+                reject(err);
+            } else {
+                console.log(`Image ${key} supprimée de S3 avec succès`);
+                resolve();
+            }
+        });
+    });
+}
+
+
+// Partie gestion des services
 app.get('/services/:id', async (req, res) => {
     const serviceId = req.params.id;
     try {
@@ -392,6 +415,25 @@ app.get('/services/:id', async (req, res) => {
     }
 });
 
+// Récupération des services 
+app.get('/services', (req, res) => {
+    pool.query('SELECT * FROM services', (err, results) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des services :', err);
+            res.status(500).json({ error: 'Erreur serveur lors de la récupération des services' });
+        } else {
+            // Ajuster chaque résultat pour inclure l'URL complète de l'image
+            const servicesWithImageUrl = results.map(service => {
+                return {
+                    ...service,
+                    image_url: service.image_url // Assurez-vous que service.image_url est déjà une URL complète
+                };
+            });
+            res.json(servicesWithImageUrl);
+        }
+    });
+});
+
   // Ajout d'un service
   app.post('/services', upload.single('image_url'), async (req, res) => {
     const { title, description } = req.body;
@@ -409,7 +451,6 @@ app.get('/services/:id', async (req, res) => {
     }
 });
 
-  
   // Mettre à jour un service existant
   app.put('/services/:id', upload.single('image_url'), async (req, res) => {
     const serviceID = req.params.id;
@@ -477,46 +518,6 @@ app.get('/services/:id', async (req, res) => {
     }
 });
 
-// Suppression d'un service + Image sur Bucket S3
-async function deleteImageFromS3(imageUrl) {
-    try {
-        const key = imageUrl.split('/').pop(); // Récupère le nom du fichier depuis l'URL
-        const params = {
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key,
-        };
-
-        await s3.deleteObject(params).promise();
-        console.log(`Image ${key} supprimée avec succès de S3`);
-    } catch (err) {
-        console.error(`Erreur lors de la suppression de l'image depuis S3 : ${err.message}`);
-        throw err;
-    }
-}
-
-function deleteImageFromS3(imageUrl) {
-    return new Promise((resolve, reject) => {
-        const decodedUrl = decodeURIComponent(imageUrl); // Décoder l'URL si nécessaire
-        const key = decodedUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
-
-        const params = {
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key
-        };
-
-        s3.deleteObject(params, (err, data) => {
-            if (err) {
-                console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
-                reject(err);
-            } else {
-                console.log(`Image ${key} supprimée de S3 avec succès`);
-                resolve();
-            }
-        });
-    });
-}  
-
-
 app.delete('/services/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -561,12 +562,10 @@ app.delete('/services/:id', async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la suppression du service' });
     }
 });
-// Fonction pour supprimer une image de S3
 
 
 
-
-// Ajouter un animal
+// Partie gestion des animaux
 app.post('/animals', upload.single('image'), async (req, res) => {
     const { name, species, age, description, habitat_id } = req.body;
     const imageUrl = req.file.location; // URL de l'image dans S3
