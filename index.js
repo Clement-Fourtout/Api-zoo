@@ -183,6 +183,18 @@ function generateSecurePassword() {
     return Math.random().toString(36).slice(-8);
 }
 
+app.get('/roles', (req, res) => {
+    const query = 'SELECT DISTINCT role FROM utilisateurs'; // Sélectionne tous les rôles distincts
+    pool.query(query, (err, results) => {
+      if (err) {
+        console.error(`Erreur lors de la récupération des rôles : ${err.message}`);
+        return res.status(500).json({ message: 'Erreur serveur lors de la récupération des rôles' });
+      }
+      const roles = results.map((result) => result.role);
+      res.json(roles); // Renvoie la liste des rôles disponibles
+    });
+  });
+
 app.post('/register', async (req, res) => {
     const { nom, role, email} = req.body;
 
@@ -372,7 +384,7 @@ app.get('/horaires', (req, res) => {
       }
     });
   });
-// Mettre à jour un horaire par son ID
+// Mettre à jour un horaire
 app.put('/horaires', (req, res) => {
     const modifiedHoraires = req.body;
 
