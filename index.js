@@ -391,7 +391,7 @@ app.get('/services', (req, res) => {
   // Mettre à jour un service existant
   app.put('/services/:id', upload.single('image'), async (req, res) => {
     const serviceID = req.params.id;
-    const { name, description, image_url } = req.body;
+    const { title, description } = req.body;
     let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
 
     try {
@@ -423,7 +423,7 @@ app.get('/services', (req, res) => {
 
             // Construction de la requête SQL pour mettre à jour le service
             const updateValues = [name, description, image_url];
-            let queryUpdate = 'UPDATE services SET name = ?, description = ?, image_url = ?';
+            let queryUpdate = 'UPDATE services SET title = ?, description = ?, image_url = ?';
 
             // Ajouter la nouvelle image à la requête SQL si imageUrl est défini
             if (imageUrl) {
