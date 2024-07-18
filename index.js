@@ -444,8 +444,8 @@ app.get('/services/:id', async (req, res) => {
             }
 
             // Construction de la requête SQL pour mettre à jour le service
-            const updateValues = [title, description, imageUrl];
-            let queryUpdate = 'UPDATE services SET title = ?, description = ?, image_url = ?';
+            const updateValues = [title, description];
+            let queryUpdate = 'UPDATE services SET title = ?, description = ?';
 
             // Ajouter la nouvelle image à la requête SQL si imageUrl est défini
             if (imageUrl) {
@@ -476,9 +476,9 @@ app.get('/services/:id', async (req, res) => {
         res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du service' });
     }
 });
-  
-  // Suppression d'un service + Image sur Bucket S3
-  async function deleteImageFromS3(imageUrl) {
+
+// Suppression d'un service + Image sur Bucket S3
+async function deleteImageFromS3(imageUrl) {
     try {
         const key = imageUrl.split('/').pop(); // Récupère le nom du fichier depuis l'URL
         const params = {
@@ -493,6 +493,30 @@ app.get('/services/:id', async (req, res) => {
         throw err;
     }
 }
+
+function deleteImageFromS3(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const decodedUrl = decodeURIComponent(imageUrl); // Décoder l'URL si nécessaire
+        const key = decodedUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
+
+        const params = {
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key
+        };
+
+        s3.deleteObject(params, (err, data) => {
+            if (err) {
+                console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
+                reject(err);
+            } else {
+                console.log(`Image ${key} supprimée de S3 avec succès`);
+                resolve();
+            }
+        });
+    });
+}  
+
+
 app.delete('/services/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -538,27 +562,7 @@ app.delete('/services/:id', async (req, res) => {
     }
 });
 // Fonction pour supprimer une image de S3
-function deleteImageFromS3(imageUrl) {
-    return new Promise((resolve, reject) => {
-        const decodedUrl = decodeURIComponent(imageUrl); // Décoder l'URL si nécessaire
-        const key = decodedUrl.split('/').pop(); // Récupérer le nom du fichier à partir de l'URL
 
-        const params = {
-            Bucket: process.env.AWS_S3_BUCKET,
-            Key: key
-        };
-
-        s3.deleteObject(params, (err, data) => {
-            if (err) {
-                console.error(`Erreur lors de la suppression de l'image de S3 : ${err.message}`);
-                reject(err);
-            } else {
-                console.log(`Image ${key} supprimée de S3 avec succès`);
-                resolve();
-            }
-        });
-    });
-}
 
 
 
