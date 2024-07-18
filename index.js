@@ -373,29 +373,64 @@ app.get('/horaires', (req, res) => {
     });
   });
 // Mettre à jour un horaire par son ID
-app.put('/horaires/:id', (req, res) => {
-    const { id } = req.params;
-    const { jour, heures } = req.body;
+app.put('/horaires', (req, res) => {
+    const modifiedHoraires = req.body.modifiedHoraires;
 
-    // Vérification que les données requises sont présentes
-    if (!jour || !heures) {
-        return res.status(400).json({ message: 'Jour et heures sont requis pour la mise à jour' });
+    // Vérification que les données requises sont présentes et valides
+    if (!modifiedHoraires || !Array.isArray(modifiedHoraires)) {
+        return res.status(400).json({ message: 'Les horaires modifiés sont requis pour la mise à jour' });
     }
 
-    const updateValues = [jour, heures, id];
-    const queryUpdate = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
-
-    pool.query(queryUpdate, updateValues, (err, result) => {
+    // Utilisation d'une transaction pour garantir la cohérence des mises à jour
+    pool.getConnection((err, connection) => {
         if (err) {
-            console.error(`Erreur lors de la mise à jour de l'horaire : ${err.message}`);
-            return res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'horaire' });
+            console.error(`Erreur lors de la connexion à la base de données : ${err.message}`);
+            return res.status(500).json({ message: 'Erreur serveur lors de la connexion à la base de données' });
         }
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Horaire non trouvé' });
-        }
+        connection.beginTransaction((err) => {
+            if (err) {
+                console.error(`Erreur lors du démarrage de la transaction : ${err.message}`);
+                return res.status(500).json({ message: 'Erreur serveur lors du démarrage de la transaction' });
+            }
 
-        res.json({ message: 'Horaire mis à jour avec succès' });
+            const updatePromises = modifiedHoraires.map((horaire) => {
+                return new Promise((resolve, reject) => {
+                    const { id, jour, heures } = horaire;
+                    const queryUpdate = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
+                    const values = [jour, heures, id];
+
+                    connection.query(queryUpdate, values, (err, result) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(result);
+                    });
+                });
+            });
+
+            Promise.all(updatePromises)
+                .then(() => {
+                    connection.commit((err) => {
+                        if (err) {
+                            console.error(`Erreur lors de la validation de la transaction : ${err.message}`);
+                            return connection.rollback(() => {
+                                res.status(500).json({ message: 'Erreur serveur lors de la validation de la transaction' });
+                            });
+                        }
+                        res.json({ message: 'Horaires mis à jour avec succès' });
+                    });
+                })
+                .catch((err) => {
+                    console.error(`Erreur lors de la mise à jour des horaires : ${err.message}`);
+                    connection.rollback(() => {
+                        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour des horaires' });
+                    });
+                })
+                .finally(() => {
+                    connection.release();
+                });
+        });
     });
 });
 
