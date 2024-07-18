@@ -374,7 +374,7 @@ app.get('/horaires', (req, res) => {
   });
 // Mettre à jour un horaire par son ID
 app.put('/horaires', (req, res) => {
-    const modifiedHoraires = req.body.modifiedHoraires;
+    const modifiedHoraires = req.body;
 
     // Vérification que les données requises sont présentes et valides
     if (!modifiedHoraires || !Array.isArray(modifiedHoraires)) {
@@ -395,11 +395,11 @@ app.put('/horaires', (req, res) => {
             }
 
             const updatePromises = modifiedHoraires.map((horaire) => {
-                return new Promise((resolve, reject) => {
-                    const { id, jour, heures } = horaire;
-                    const queryUpdate = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
-                    const values = [jour, heures, id];
+                const { id, jour, heures } = horaire;
+                const queryUpdate = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
+                const values = [jour, heures, id];
 
+                return new Promise((resolve, reject) => {
                     connection.query(queryUpdate, values, (err, result) => {
                         if (err) {
                             return reject(err);
@@ -433,6 +433,7 @@ app.put('/horaires', (req, res) => {
         });
     });
 });
+
 
 
 // Suppression d'un service + Image sur Bucket S3
