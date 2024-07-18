@@ -389,30 +389,71 @@ app.get('/services', (req, res) => {
 
   
   // Mettre à jour un service existant
-  app.put('/services/:id', (req, res) => {
+  app.put('/services/:id', upload.single('image'), async (req, res) => {
+    const servicesID = req.params.id;
+    const { name, description, image_url } = req.body;
+    let imageUrl = req.file ? req.file.location : undefined; // URL de l'image dans S3 si une nouvelle image est téléchargée
+
     try {
-      const { id } = req.params;
-      const { title, description, image_url } = req.body;
-  
-      // Vérifiez si les champs requis sont présents
-      if (!title || !description || !image_url) {
-        return res.status(400).json({ message: 'Veuillez fournir un titre, une description et une URL d\'image.' });
-      }
-  
-      const query = 'UPDATE services SET title = ?, description = ?, image_url = ? WHERE id = ?';
-      pool.query(query, [title, description, image_url, id], (err, result) => {
-        if (err) {
-          console.error('Erreur lors de la modification du service :', err);
-          return res.status(500).json({ message: 'Erreur lors de la modification du service' });
-        }
-        console.log('Service modifié avec succès :', result);
-        return res.status(200).json({ id, title, description, image_url });
-      });
+
+        // Récupérer l'URL de l'image actuelle du service depuis la base de données
+        const querySelect = 'SELECT image FROM services WHERE id = ?';
+        pool.query(querySelect, [servicesID], async (err, rows) => {
+            if (err) {
+                console.error(`Erreur lors de la sélection de l'image : ${err.message}`);
+                return res.status(500).json({ error: 'Erreur serveur lors de la récupération de l\'image' });
+            }
+
+            // Vérifier si aucune entrée n'est trouvée
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'Service non trouvé' });
+            }
+
+            const currentImageUrl = rows[0].image;
+
+            // Supprimer l'ancienne image de S3 si une nouvelle image est téléchargée
+            if (imageUrl && currentImageUrl) {
+                try {
+                    await deleteImageFromS3(currentImageUrl);
+                } catch (error) {
+                    console.error(`Erreur lors de la suppression de l'ancienne image de S3 : ${error.message}`);
+                    return res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'ancienne image de S3' });
+                }
+            }
+
+            // Construction de la requête SQL pour mettre à jour le service
+            const updateValues = [name, description, image_url];
+            let queryUpdate = 'UPDATE services SET name = ?, description = ?, image_url = ?';
+
+            // Ajouter la nouvelle image à la requête SQL si imageUrl est défini
+            if (imageUrl) {
+                updateValues.push(imageUrl);
+                queryUpdate += ', image_url = ?';
+            }
+
+            queryUpdate += ' WHERE id = ?';
+            updateValues.push(servicesID);
+
+            // Exécuter la requête SQL pour mettre à jour le service
+            pool.query(queryUpdate, updateValues, (err, result) => {
+                if (err) {
+                    console.error(`Erreur lors de la mise à jour du service : ${err.message}`);
+                    return res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du service' });
+                }
+
+                // Vérifier si le service a été mis à jour avec succès
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: 'Service non trouvé' });
+                }
+
+                res.json({ message: 'Service mis à jour avec succès' });
+            });
+        });
     } catch (error) {
-      console.error('Erreur inattendue :', error);
-      return res.status(500).json({ message: 'Erreur serveur inattendue' });
+        console.error('Erreur lors de la mise à jour du service :', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du service' });
     }
-  });
+});
   
   // Suppression d'un service + Image sur Bucket S3
   async function deleteImageFromS3(imageUrl) {
