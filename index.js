@@ -376,20 +376,30 @@ app.get('/horaires', (req, res) => {
 app.put('/horaires/:id', (req, res) => {
     const { id } = req.params;
     const { jour, heures } = req.body;
-  
-    const pool = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
-    const values = [jour, heures, id];
-  
-    pool.query(query, values, (error, result) => {
-      if (error) {
-        console.error('Erreur lors de la mise à jour de l\'horaire :', error);
-        res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'horaire' });
-      } else {
-        res.status(200).json({ message: 'Horaire mis à jour avec succès' });
-      }
+
+    // Vérification que les données requises sont présentes
+    if (!jour || !heures) {
+        return res.status(400).json({ message: 'Jour et heures sont requis pour la mise à jour' });
+    }
+
+    const updateValues = [jour, heures, id];
+    const queryUpdate = 'UPDATE Horaires SET jour = ?, heures = ? WHERE id = ?';
+
+    pool.query(queryUpdate, updateValues, (err, result) => {
+        if (err) {
+            console.error(`Erreur lors de la mise à jour de l'horaire : ${err.message}`);
+            return res.status(500).json({ message: 'Erreur serveur lors de la mise à jour de l\'horaire' });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Horaire non trouvé' });
+        }
+
+        res.json({ message: 'Horaire mis à jour avec succès' });
     });
-  });
-  
+});
+
+
 // Suppression d'un service + Image sur Bucket S3
 async function deleteImageFromS3(imageUrl) {
     try {
