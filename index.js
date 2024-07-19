@@ -308,35 +308,46 @@ app.post('/contact', async (req, res) => {
   });
 
   // Systeme de réponse aux demandes visiteurs
-  app.post('/send-response', async (req, res) => {
-    const { contactId, subject, text } = req.body;
+app.post('/send-response', async (req, res) => {
+    const { contactId, subject, text, to } = req.body;
+    
+    console.log('Requête reçue:', req.body); // Log de la requête
   
     // Configuration de Nodemailer
     const transporter = nodemailer.createTransport({
-        host: 'smtp.office365.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.OUTLOOK_EMAIL,
-            pass: process.env.OUTLOOK_PASSWORD
-        }
+      service: 'smtp.office365.com', // ou un autre service de messagerie
+      auth: {
+        user: process.env.OUTLOOK_EMAIL,
+        pass: process.env.OUTLOOK_PASSWORD
+      }
     });
   
     const mailOptions = {
       from: process.env.OUTLOOK_EMAIL,
-      to, // Assurez-vous que l'email du destinataire est passé dans le corps de la requête
+      to,
       subject,
       text
     };
   
     try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).send({ message: 'Réponse envoyée avec succès.' });
-      } catch (error) {
-        console.error('Erreur lors de l\'envoi de la réponse :', error);
-        res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
-      }
-    });
+      console.log('Envoi de l\'email à', to); // Log avant l'envoi de l'email
+      // Envoi de l'email
+      await transporter.sendMail(mailOptions);
+      console.log('Email envoyé avec succès');
+  
+      // Enregistrement de la réponse dans la base de données
+      await pool.query(
+        'INSERT INTO send_responses (contact_id, subject, text) VALUES ($1, $2, $3)',
+        [contactId, subject, text]
+      );
+      console.log('Réponse enregistrée dans la base de données');
+  
+      res.status(200).send({ message: 'Réponse envoyée et enregistrée avec succès.' });
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la réponse :', error); // Log des erreurs
+      res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
+    }
+  });
 
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
