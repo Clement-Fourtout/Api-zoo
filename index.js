@@ -183,6 +183,7 @@ function generateSecurePassword() {
     return Math.random().toString(36).slice(-8);
 }
 
+// Selection des roles (employés, vétérinaires)
 app.get('/roles', (req, res) => {
     const query = 'SELECT DISTINCT role FROM utilisateurs'; // Sélectionne tous les rôles distincts
     pool.query(query, (err, results) => {
@@ -195,6 +196,8 @@ app.get('/roles', (req, res) => {
     });
   });
 
+
+// Création de compte avec envoi d'identifiant par mail au nouvel employé
 app.post('/register', async (req, res) => {
     const { nom, role, email} = req.body;
 
@@ -262,8 +265,48 @@ app.post('/register', async (req, res) => {
     }
 });
 
-
-
+// Systeme de contact pour les visiteurs
+app.post('/contact', async (req, res) => {
+    const { title, description, email } = req.body;
+  
+    // Configuration de nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'smtp.office365.com', // ou un autre service de messagerie
+      auth: {
+        user: process.env.OUTLOOK_EMAIL,
+        pass: process.env.OUTLOOK_PASSWORD
+      }
+    });
+  
+    const mailOptions = {
+      from: email,
+      to: process.env.OUTLOOK_EMAIL,
+      subject: title,
+      text: description
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      const query = 'INSERT INTO contacts (title, description, email) VALUES (?, ?, ?)';
+      await pool.query(query, [title, description, email]);
+      res.status(200).send({ message: 'Message envoyé avec succès.' });
+  
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de l\'email:', error);
+      res.status(500).send({ error: 'Erreur lors de l\'envoi du message.' });
+    }
+  });
+  
+  // Route pour récupérer les messages de contact
+  app.get('/contacts', async (req, res) => {
+    try {
+      const [results] = await pool.query('SELECT * FROM contacts');
+      res.status(200).json(results);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des messages de contact :', error);
+      res.status(500).json({ error: 'Erreur lors de la récupération des messages de contact' });
+    }
+  });
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
     const { pseudo, avis } = req.body;
