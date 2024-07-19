@@ -279,10 +279,10 @@ app.post('/contact', async (req, res) => {
     });
   
     const mailOptions = {
-      from: email,
+      from: process.env.OUTLOOK_EMAIL,
       to: process.env.OUTLOOK_EMAIL,
       subject: title,
-      text: description
+      text: `De: ${email}\n\n${description}`
     };
   
     try {
