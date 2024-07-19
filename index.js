@@ -324,27 +324,19 @@ app.post('/contact', async (req, res) => {
   
     const mailOptions = {
       from: process.env.OUTLOOK_EMAIL,
-      to: req.body.to, // Assurez-vous que l'email du destinataire est passé dans le corps de la requête
+      to, // Assurez-vous que l'email du destinataire est passé dans le corps de la requête
       subject,
       text
     };
   
     try {
-      // Envoi de l'email
-      await transporter.sendMail(mailOptions);
-  
-      // Enregistrement de la réponse dans la base de données
-      await pool.query(
-        'INSERT INTO send_responses (contact_id, subject, text) VALUES ($1, $2, $3)',
-        [contactId, subject, text]
-      );
-  
-      res.status(200).send({ message: 'Réponse envoyée et enregistrée avec succès.' });
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi de la réponse :', error);
-      res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
-    }
-  });
+        await transporter.sendMail(mailOptions);
+        res.status(200).send({ message: 'Réponse envoyée avec succès.' });
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi de la réponse :', error);
+        res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
+      }
+    });
 
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
