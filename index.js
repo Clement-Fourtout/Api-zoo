@@ -332,7 +332,16 @@ app.post('/contact', async (req, res) => {
             from: process.env.OUTLOOK_EMAIL,
             to: to,
             subject: subject,
-            text: text
+            text: text,
+            html: `
+            <img src="cid:logo" alt="Zoo Arcadia">
+            <p>Bonjour ${to},</p>
+        `,
+        attachments: [{
+            filename: 'Arcadia Zoo.png',
+            content: logoContent,
+            cid: 'logo' // Identifiant unique pour cette pièce jointe
+        }]
         };
 
         try {
