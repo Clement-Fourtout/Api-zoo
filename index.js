@@ -309,34 +309,58 @@ app.post('/contact', async (req, res) => {
 
   // Systeme de réponse aux demandes visiteurs
   app.post('/send-response', async (req, res) => {
-    const { contactId, subject, text } = req.body;
-  
-    // Configuration de Nodemailer
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.office365.com',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.OUTLOOK_EMAIL,
-            pass: process.env.OUTLOOK_PASSWORD
-        }
-    });
-  
-    const mailOptions = {
-      from: process.env.OUTLOOK_EMAIL,
-      to, // Assurez-vous que l'email du destinataire est passé dans le corps de la requête
-      subject,
-      text
-    };
-  
+    const { messageId, responseText } = req.body;
+
+
     try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).send({ message: 'Réponse envoyée avec succès.' });
-      } catch (error) {
-        console.error('Erreur lors de l\'envoi de la réponse :', error);
-        res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
-      }
-    });
+        const query = 'SELECT * FROM contacts WHERE id = ?';
+        pool.query(query, [messageId], async (err, results) => {
+            if (err) {
+                console.error('Erreur lors de la récupération du message :', err);
+                return res.status(500).json({ message: 'Erreur lors de la récupération du message' });
+            }
+
+            if (results.length === 0) {
+                return res.status(404).json({ message: 'Message non trouvé' });
+            }
+
+            const contact = results[0];
+
+            const transporter = nodemailer.createTransport({
+                host: 'smtp.office365.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: process.env.OUTLOOK_EMAIL,
+                    pass: process.env.OUTLOOK_PASSWORD
+                }
+            });
+
+            const mailOptions = {
+                from: process.env.OUTLOOK_EMAIL,
+                to: contact.email,
+                subject: `Réponse à votre message : ${contact.title}`,
+                html: `
+                    <p>Bonjour,</p>
+                    <p>Voici la réponse à votre message :</p>
+                    <p>${responseText}</p>
+                `
+            };
+
+            try {
+                await transporter.sendMail(mailOptions);
+                console.log('Réponse envoyée avec succès');
+                return res.status(200).json({ message: 'Réponse envoyée avec succès' });
+            } catch (error) {
+                console.error('Erreur lors de l\'envoi de la réponse :', error);
+                return res.status(500).json({ message: 'Erreur lors de l\'envoi de la réponse' });
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors du traitement de la réponse :', error);
+        return res.status(500).json({ message: 'Erreur lors du traitement de la réponse' });
+    }
+});
 
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
