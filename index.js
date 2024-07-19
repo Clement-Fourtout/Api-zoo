@@ -299,14 +299,15 @@ app.post('/contact', async (req, res) => {
   
   // Route pour récupérer les messages de contact
   app.get('/contacts', async (req, res) => {
-    try {
-      const [results] = await pool.query('SELECT * FROM contacts');
+    pool.query('SELECT * FROM contacts', (error, results) => {
+      if (error) {
+        console.error('Erreur lors de la récupération des messages de contact :', error);
+        return res.status(500).json({ error: 'Erreur lors de la récupération des messages de contact' });
+      }
       res.status(200).json(results);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des messages de contact :', error);
-      res.status(500).json({ error: 'Erreur lors de la récupération des messages de contact' });
-    }
+    });
   });
+  
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
     const { pseudo, avis } = req.body;
