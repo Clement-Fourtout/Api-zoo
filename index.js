@@ -297,15 +297,17 @@ app.post('/contact', async (req, res) => {
   });
   
   // Route pour récupérer les messages de contact
-  app.get('/contacts', async (req, res) => {
-    pool.query('SELECT * FROM contacts', (error, results) => {
-      if (error) {
-        console.error('Erreur lors de la récupération des messages de contact :', error);
-        return res.status(500).json({ error: 'Erreur lors de la récupération des messages de contact' });
-      }
-      res.status(200).json(results);
+  app.get('/unreplied-contacts', (req, res) => {
+    const query = 'SELECT * FROM contacts WHERE replied = FALSE';
+
+    pool.query(query, (err, results) => {
+        if (err) {
+            console.error('Erreur lors de la récupération des messages non répondus :', err);
+            return res.status(500).json({ message: 'Erreur lors de la récupération des messages' });
+        }
+        res.status(200).json(results);
     });
-  });
+});
 
   // Systeme de réponse aux demandes visiteurs
   app.post('/send-response', async (req, res) => {
