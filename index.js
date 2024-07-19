@@ -327,21 +327,23 @@ app.post('/contact', async (req, res) => {
             }
         });
 
+        const logoPath = path.join(__dirname, 'Img', 'Arcadia Zoo.png'); // Assurez-vous que le chemin est correct
+        const logoContent = fs.readFileSync(logoPath);
+
         // Définir les options de l'e-mail
         const mailOptions = {
             from: process.env.OUTLOOK_EMAIL,
             to: to,
             subject: subject,
-            text: text,
             html: `
-            <img src="cid:logo" alt="Zoo Arcadia">
-            <p>Bonjour ${to},</p>
-        `,
-        attachments: [{
-            filename: 'Arcadia Zoo.png',
-            content: logoContent,
-            cid: 'logo' // Identifiant unique pour cette pièce jointe
-        }]
+                <img src="cid:logo" alt="Zoo Arcadia">
+                <p>${text}</p>
+            `,
+            attachments: [{
+                filename: 'Arcadia Zoo.png',
+                content: logoContent,
+                cid: 'logo' // Identifiant unique pour cette pièce jointe
+            }]
         };
 
         try {
