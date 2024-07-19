@@ -269,9 +269,8 @@ app.post('/register', async (req, res) => {
 app.post('/contact', async (req, res) => {
     const { title, description, email } = req.body;
   
-    // Configuration de nodemailer
     const transporter = nodemailer.createTransport({
-      service: 'Outlook365', // ou un autre service de messagerie
+      service: 'Outlook365', 
       auth: {
         user: process.env.OUTLOOK_EMAIL,
         pass: process.env.OUTLOOK_PASSWORD
@@ -307,7 +306,36 @@ app.post('/contact', async (req, res) => {
       res.status(200).json(results);
     });
   });
+
+  // Systeme de réponse aux demandes visiteurs
+  app.post('/send-response', async (req, res) => {
+    const { to, subject, text } = req.body;
   
+    
+    const transporter = nodemailer.createTransport({
+      service: 'smtp.office365.com', 
+      auth: {
+        user: process.env.OUTLOOK_EMAIL,
+        pass: process.env.OUTLOOK_PASSWORD
+      }
+    });
+  
+    const mailOptions = {
+      from: process.env.OUTLOOK_EMAIL, 
+      to,
+      subject,
+      text
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      res.status(200).send({ message: 'Réponse envoyée avec succès.' });
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la réponse :', error);
+      res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
+    }
+  });
+
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
     const { pseudo, avis } = req.body;
