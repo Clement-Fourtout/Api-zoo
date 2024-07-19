@@ -309,11 +309,11 @@ app.post('/contact', async (req, res) => {
 
   // Systeme de réponse aux demandes visiteurs
   app.post('/send-response', async (req, res) => {
-    const { to, subject, text } = req.body;
+    const { contactId, subject, text } = req.body;
   
-    
+    // Configuration de Nodemailer
     const transporter = nodemailer.createTransport({
-      service: 'smtp.office365.com', 
+      service: 'smtp.office365.com', // ou un autre service de messagerie
       auth: {
         user: process.env.OUTLOOK_EMAIL,
         pass: process.env.OUTLOOK_PASSWORD
@@ -321,15 +321,23 @@ app.post('/contact', async (req, res) => {
     });
   
     const mailOptions = {
-      from: process.env.OUTLOOK_EMAIL, 
-      to,
+      from: process.env.OUTLOOK_EMAIL,
+      to: req.body.to, // Assurez-vous que l'email du destinataire est passé dans le corps de la requête
       subject,
       text
     };
   
     try {
+      // Envoi de l'email
       await transporter.sendMail(mailOptions);
-      res.status(200).send({ message: 'Réponse envoyée avec succès.' });
+  
+      // Enregistrement de la réponse dans la base de données
+      await pool.query(
+        'INSERT INTO send_responses (contact_id, subject, text) VALUES ($1, $2, $3)',
+        [contactId, subject, text]
+      );
+  
+      res.status(200).send({ message: 'Réponse envoyée et enregistrée avec succès.' });
     } catch (error) {
       console.error('Erreur lors de l\'envoi de la réponse :', error);
       res.status(500).send({ error: 'Erreur lors de l\'envoi de la réponse.' });
