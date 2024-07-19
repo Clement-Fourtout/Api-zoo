@@ -271,7 +271,7 @@ app.post('/contact', async (req, res) => {
   
     // Configuration de nodemailer
     const transporter = nodemailer.createTransport({
-      service: 'smtp.office365.com', // ou un autre service de messagerie
+      service: 'Outlook365', // ou un autre service de messagerie
       auth: {
         user: process.env.OUTLOOK_EMAIL,
         pass: process.env.OUTLOOK_PASSWORD
