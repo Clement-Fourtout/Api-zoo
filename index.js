@@ -311,12 +311,11 @@ app.post('/contact', async (req, res) => {
 
   // Systeme de réponse aux demandes visiteurs
   app.post('/send-response', async (req, res) => {
-    const { to, subject, text } = req.body;
+    const { messageId, to, subject, text } = req.body;
 
-    try {
-        if (!to || !subject || !text) {
-            return res.status(400).json({ message: 'Destinataire, sujet et texte de la réponse sont requis.' });
-        }
+    if (!messageId || !to || !subject || !text) {
+        return res.status(400).json({ message: 'ID du message, destinataire, sujet et texte de la réponse sont requis.' });
+    }
 
         // Configurer le transporteur d'e-mail
         const transporter = nodemailer.createTransport({
@@ -349,27 +348,25 @@ app.post('/contact', async (req, res) => {
         };
 
         try {
-            // Envoyer l'e-mail
+            // Envoyer l'email
             await transporter.sendMail(mailOptions);
-            console.log('Réponse envoyée avec succès');
+            console.log('Réponse envoyée avec succès.');
+    
+            // Mettre à jour la table des contacts
             const updateQuery = 'UPDATE contacts SET replied = TRUE WHERE id = ?';
-        pool.query(updateQuery, [to], (err, result) => {
-            if (err) {
-                console.error('Erreur lors de la mise à jour du message dans la base de données :', err);
-                return res.status(500).json({ message: 'Erreur lors de la mise à jour du message' });
-            }
-            return res.status(200).json({ message: 'Réponse envoyée et message mis à jour avec succès' });
-        });
-            return res.status(200).json({ message: 'Réponse envoyée avec succès' });
+            pool.query(updateQuery, [messageId], (err, result) => {
+                if (err) {
+                    console.error('Erreur lors de la mise à jour du message dans la base de données :', err);
+                    return res.status(500).json({ message: 'Erreur lors de la mise à jour du message' });
+                }
+                return res.status(200).json({ message: 'Réponse envoyée et message mis à jour avec succès' });
+            });
+    
         } catch (error) {
             console.error('Erreur lors de l\'envoi de la réponse :', error);
             return res.status(500).json({ message: 'Erreur lors de l\'envoi de la réponse' });
         }
-    } catch (error) {
-        console.error('Erreur lors du traitement de la réponse :', error);
-        return res.status(500).json({ message: 'Erreur lors du traitement de la réponse' });
-    }
-});
+    });
 // Mettre un avis
 app.post('/submit-review', (req, res) => {
     const { pseudo, avis } = req.body;
