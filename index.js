@@ -68,7 +68,6 @@ pool.query('SELECT * FROM services', (error, results, fields) => {
       console.error('Erreur lors de la requête SQL :', error);
       return;
     }
-    console.log('Résultats de la requête :', results);
   });
 
 
@@ -124,10 +123,8 @@ app.delete('/users/:userId', (req, res) => {
             res.status(500).json({ message: 'Erreur lors de la suppression du compte utilisateur' });
         } else {
             if (result.affectedRows > 0) {
-                console.log('Utilisateur supprimé avec succès de la base de données :', { userId });
                 res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
             } else {
-                console.log('Utilisateur non trouvé dans la base de données :', { userId });
                 res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
         }
@@ -138,7 +135,6 @@ app.post('/login', async (req, res) => {
     const { nom, mot_de_passe } = req.body;
 
     try {
-        console.log('Requête de connexion reçue avec les données suivantes :', { nom });
 
         const query = 'SELECT id, mot_de_passe, role FROM utilisateurs WHERE nom = ?';
         pool.query(query, [nom], async (err, result) => {
@@ -149,32 +145,28 @@ app.post('/login', async (req, res) => {
             }
             if (result.length > 0) {
                 const user = result[0];
-                console.log('Mot de passe haché récupéré depuis la base de données : ', user.mot_de_passe);
 
-                // Utilisez bcrypt.compare() pour comparer les mots de passe hachés
+                // bcrypt.compare pour comparer les mots de passes hachés
                 bcrypt.compare(mot_de_passe, user.mot_de_passe, async (err, match) => {
                     if (err) {
                         console.error('Erreur lors de la comparaison des mots de passe :', err);
                         res.status(500).json({ message: 'Erreur lors de l\'authentification' });
                     } else {
                         if (match) {
-                            // Le mot de passe saisi par l'utilisateur correspond au mot de passe haché dans la base de données
+                            
                             const token = jwt.sign({ nom }, 'votre_clé_secrète', { expiresIn: '1h' });
-                            // Envoyez également le rôle de l'utilisateur dans la réponse JSON
+                            
                             res.json({ token, role: user.role, userId: user.id });
                         } else {
-                            console.log('Mot de passe incorrect pour l\'utilisateur :', { nom });
                             res.status(401).json({ message: 'Mot de passe incorrect' });
                         }
                     }
                 });
             } else {
-                console.log('Utilisateur non trouvé dans la base de données :', { nom });
                 res.status(404).json({ message: 'Utilisateur non trouvé' });
             }
         });
     } catch (error) {
-        console.error('Erreur lors de la recherche de l\'utilisateur dans la base de données :', error);
         res.status(500).json({ message: 'Erreur Base de donnée' });
     }
 });
@@ -204,7 +196,6 @@ app.post('/register', async (req, res) => {
     try {
         // Générer un mot de passe sécurisé de manière asynchrone
         const mot_de_passe = await generateSecurePassword();
-        console.log("Mot de passe généré:", mot_de_passe)
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
 
@@ -215,7 +206,6 @@ app.post('/register', async (req, res) => {
                 console.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données :', err);
                 return res.status(500).json({ message: 'Erreur lors de la création de l\'utilisateur' });
             } else {
-                console.log('Utilisateur enregistré avec succès dans la base de données :', { nom, role });
 
                 // Envoyer un e-mail de confirmation avec le logo inclus
                 const transporter = nodemailer.createTransport({
@@ -377,7 +367,6 @@ app.post('/submit-review', (req, res) => {
             console.error('Erreur lors de la soumission de l\'avis :', err);
             return res.status(500).json({ message: 'Erreur lors de la soumission de l\'avis' });
         } else {
-            console.log('Avis soumis avec succès :', { pseudo, avis });
             return res.status(200).json({ message: 'Avis soumis avec succès' });
         }
     });
